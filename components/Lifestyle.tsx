@@ -1,6 +1,9 @@
 import React from 'react';
+import { useLanguage } from './LanguageContext';
 
 const Lifestyle: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 md:py-32 bg-gray-50 relative overflow-hidden">
       <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
@@ -12,23 +15,23 @@ const Lifestyle: React.FC = () => {
         {/* Text Section */}
         <div className="md:w-1/2 space-y-8 text-center md:text-left">
           <div className="space-y-4">
-            <span className="text-blue-600 font-bold tracking-widest uppercase text-xs">Lifestyle Integration</span>
+            <span className="text-blue-600 font-bold tracking-widest uppercase text-xs">{t.lifestyle.tag}</span>
             <h2 className="text-3xl md:text-[2.75rem] font-bold text-gray-900 leading-[1.2] tracking-tight text-balance">
-              工作在 Web3<br />生活在现实
+              {t.lifestyle.title_line1}<br />{t.lifestyle.title_line2}
             </h2>
             <p className="text-base md:text-lg text-gray-500 leading-relaxed text-balance pt-2">
-              无论您是巴厘岛的数字游民，还是义乌的跨国贸易商，PAIPAY 消除了一切技术冷感。没有复杂的链上操作，只有资金到账时清脆的提示音。
+              {t.lifestyle.description}
             </p>
           </div>
           
           <div className="space-y-4 pt-2 inline-block text-left">
             <div className="flex items-center gap-3 text-gray-700 bg-white/50 px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
               <span className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs flex-shrink-0"><i className="ri-check-line"></i></span>
-              <span className="text-sm font-medium">法币与加密货币双向无感兑换</span>
+              <span className="text-sm font-medium">{t.lifestyle.check1}</span>
             </div>
             <div className="flex items-center gap-3 text-gray-700 bg-white/50 px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
               <span className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs flex-shrink-0"><i className="ri-check-line"></i></span>
-              <span className="text-sm font-medium">支持 Visa/Mastercard 全球消费</span>
+              <span className="text-sm font-medium">{t.lifestyle.check2}</span>
             </div>
           </div>
         </div>
@@ -40,9 +43,9 @@ const Lifestyle: React.FC = () => {
             <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-3 md:p-4 border border-white flex items-center gap-3 w-60 md:w-64">
               <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 shadow-inner"><i className="ri-money-dollar-circle-fill text-xl"></i></div>
               <div>
-                <div className="text-[10px] text-gray-400 font-medium">刚刚</div>
+                <div className="text-[10px] text-gray-400 font-medium">Just now</div>
                 <div className="font-bold text-gray-800 text-sm md:text-base tracking-tight">+ 5,000.00 USDT</div>
-                <div className="text-[10px] text-green-600 font-medium">Payment Received</div>
+                <div className="text-[10px] text-green-600 font-medium">{t.lifestyle.app_received}</div>
               </div>
             </div>
           </div>
@@ -57,7 +60,7 @@ const Lifestyle: React.FC = () => {
             <div className="w-full h-full bg-white rounded-[2.2rem] overflow-hidden relative flex flex-col">
               {/* App Header */}
               <div className="bg-gradient-to-br from-blue-600 to-blue-700 h-36 p-6 text-white relative flex-shrink-0">
-                <div className="text-xs opacity-80 mb-2 font-medium tracking-wide">Total Balance</div>
+                <div className="text-xs opacity-80 mb-2 font-medium tracking-wide">{t.lifestyle.app_balance}</div>
                 <div className="text-3xl font-bold tracking-tight">$ 24,592.80</div>
                 
                 {/* Action Bar */}
@@ -79,7 +82,7 @@ const Lifestyle: React.FC = () => {
 
               {/* App Body */}
               <div className="mt-10 px-5 flex-grow overflow-y-auto scrollbar-hide pb-6 pt-2">
-                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Recent Activity</div>
+                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">{t.lifestyle.app_activity}</div>
                 
                 <div className="space-y-3">
                     {/* Bitcoin Item */}

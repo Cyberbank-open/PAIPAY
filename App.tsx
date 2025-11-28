@@ -1,4 +1,5 @@
 import React from 'react';
+import { LanguageProvider } from './components/LanguageContext';
 import TopNotificationBar from './components/TopNotificationBar';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -14,22 +15,24 @@ import Footer from './components/Footer';
 
 const App: React.FC = () => {
   return (
-    <div className="antialiased selection:bg-blue-100 selection:text-blue-900 pt-10">
-      <TopNotificationBar />
-      <Navbar />
-      <main className="relative z-0 pt-6 md:pt-16">
-        <Hero />
-        <TrustStats />
-        <Ecosystem />
-        <Compliance />
-        <Features />
-        <Lifestyle />
-        <Insights />
-        <Developers />
-        <FAQ />
-        <Footer />
-      </main>
-    </div>
+    <LanguageProvider>
+      <div className="antialiased selection:bg-blue-100 selection:text-blue-900 pt-10">
+        <TopNotificationBar />
+        <Navbar />
+        <main className="relative z-0 pt-6 md:pt-16">
+          <Hero />
+          <TrustStats />
+          <Ecosystem />
+          <Compliance />
+          <Features />
+          <Lifestyle />
+          <Insights />
+          <Developers />
+          <FAQ />
+          <Footer />
+        </main>
+      </div>
+    </LanguageProvider>
   );
 };
 

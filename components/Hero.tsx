@@ -1,6 +1,9 @@
 import React from 'react';
+import { useLanguage } from './LanguageContext';
 
 const Hero: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <section className="relative min-h-[92vh] flex flex-col justify-center overflow-hidden pt-16 md:pt-0">
       {/* Background Elements */}
@@ -20,7 +23,7 @@ const Hero: React.FC = () => {
             </div>
 
             <div className="relative z-10 flex justify-between items-start">
-              <span className="text-2xl font-bold text-gray-800 tracking-wider font-sans bg-clip-text text-transparent bg-gradient-to-r from-gray-800 via-gray-600 to-gray-800">PAIPAY</span>
+              <span className="text-2xl font-bold text-gray-800 tracking-wider font-sans bg-clip-text text-transparent bg-gradient-to-r from-gray-800 via-gray-600 to-gray-800 animate-[shine_3s_ease-in-out_infinite]">PAIPAY</span>
               <span className="text-[10px] md:text-xs text-gray-400 border border-gray-200/50 px-2 py-0.5 rounded-full tracking-wider bg-white/40 backdrop-blur-md">GLOBAL PASS</span>
             </div>
             
@@ -36,8 +39,8 @@ const Hero: React.FC = () => {
             
             <div className="relative z-10 flex justify-between items-end">
               <div className="text-left">
-                <div className="text-[9px] text-gray-400 uppercase tracking-widest mb-0.5">Card Holder</div>
-                <div className="text-sm font-semibold text-gray-700 tracking-wide text-shadow-sm">BUSINESS ELITE</div>
+                <div className="text-[9px] text-gray-400 uppercase tracking-widest mb-0.5">{t.hero.card_holder}</div>
+                <div className="text-sm font-semibold text-gray-700 tracking-wide text-shadow-sm">{t.hero.card_level}</div>
               </div>
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-400 opacity-60 shadow-inner border border-white/20"></div>
             </div>
@@ -50,29 +53,28 @@ const Hero: React.FC = () => {
         {/* Text Content - Refined Typography */}
         <div className="text-center max-w-4xl mx-auto space-y-6">
           <h1 className="text-[2.5rem] leading-[1.15] md:text-7xl font-bold tracking-tight text-gray-900 text-balance">
-            下一代全球<br className="hidden md:block" />
-            <span className="text-holo block md:inline mt-2 md:mt-0">清算网络</span>
+            {t.hero.title_line1}<br className="hidden md:block" />
+            <span className="text-holo block md:inline mt-2 md:mt-0">{t.hero.title_line2}</span>
           </h1>
           
           <p className="text-base md:text-xl text-gray-500 max-w-xl md:max-w-2xl mx-auto leading-relaxed md:leading-relaxed text-balance px-2">
-            基于区块链技术的混合金融架构<br className="hidden md:block" />
-            让您的数字资产像呼吸一样自然地流向全球
+            {t.hero.subtitle}
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6 px-6 md:px-0 w-full sm:w-auto">
             <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-blue-600 text-white font-semibold text-[15px] hover:bg-blue-700 hover:shadow-blue-200/50 hover:shadow-xl transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 group shadow-lg shadow-blue-600/20">
-              开始体验 <i className="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
+              {t.hero.cta_start} <i className="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
             </button>
             <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-gray-700 border border-gray-200 font-medium text-[15px] hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 active:scale-95">
-              联系企业顾问
+              {t.hero.cta_contact}
             </button>
           </div>
         </div>
 
         {/* Social Dock */}
         <div className="mt-16 flex flex-col items-center animate-fade-in-up">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4 opacity-80">Join Our Community</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4 opacity-80">{t.nav.community}</div>
           <div className="flex items-center gap-8 bg-white/60 backdrop-blur-md px-8 py-3 rounded-full border border-white/50 shadow-sm hover:shadow-md transition-shadow">
             <a href="#!" onClick={(e) => e.preventDefault()} className="text-gray-400 hover:text-black transition-colors transform hover:scale-110">
               <i className="ri-twitter-x-line text-xl"></i>

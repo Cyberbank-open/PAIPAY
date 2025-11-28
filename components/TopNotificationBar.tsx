@@ -1,34 +1,43 @@
 import React, { useState, useEffect } from 'react';
-
-const NOTICES = [
-  { icon: 'ri-vip-crown-fill', color: 'text-yellow-400', text: '全新推出：企业级多签钱包与智能财务系统' },
-  { icon: 'ri-briefcase-4-fill', color: 'text-cyan-400', text: 'B2B 解决方案上线：一站式集成全球清算能力' },
-  { icon: 'ri-shield-check-fill', color: 'text-green-400', text: '安全升级：私钥分片技术保障资金绝对主权' }
-];
+import { useLanguage } from './LanguageContext';
 
 const TopNotificationBar: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
+  const { t } = useLanguage();
+
+  const notices = [
+    { icon: 'ri-vip-crown-fill', color: 'text-yellow-400', text: t.notices.n1 },
+    { icon: 'ri-briefcase-4-fill', color: 'text-cyan-400', text: t.notices.n2 },
+    { icon: 'ri-shield-check-fill', color: 'text-green-400', text: t.notices.n3 }
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setIsExiting(true);
       setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % NOTICES.length);
+        setCurrentIndex((prev) => (prev + 1) % notices.length);
         setIsExiting(false);
-      }, 500); // Matches transition duration
+      }, 500); 
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [notices.length]);
 
-  const currentNotice = NOTICES[currentIndex];
+  const currentNotice = notices[currentIndex];
 
   const scrollToInsights = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const element = document.getElementById('insights');
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const offset = 140; 
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -55,7 +64,7 @@ const TopNotificationBar: React.FC = () => {
 
         {/* Desktop Link */}
         <a href="#insights" onClick={scrollToInsights} className="absolute right-4 text-gray-400 hover:text-white transition-colors hidden sm:block">
-          查看全部 &rarr;
+          &rarr;
         </a>
       </div>
     </div>

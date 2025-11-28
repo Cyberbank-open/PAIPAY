@@ -1,10 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-
-const stats = [
-  { target: 150, suffix: '+', label: '覆盖国家/地区' },
-  { target: 0, manual: 'T+0', suffix: '', label: '毫秒级清算标准' },
-  { target: 100, suffix: '+', label: '原生币种账户' },
-];
+import { useLanguage } from './LanguageContext';
 
 const useCountUp = (end: number, duration: number = 2000, start: number = 0) => {
   const [count, setCount] = useState(start);
@@ -46,7 +41,7 @@ const useCountUp = (end: number, duration: number = 2000, start: number = 0) => 
   return { count, elementRef, isVisible };
 };
 
-const StatItem: React.FC<{ item: typeof stats[0] }> = ({ item }) => {
+const StatItem: React.FC<{ item: any }> = ({ item }) => {
   const { count, elementRef, isVisible } = useCountUp(item.target);
 
   return (
@@ -69,6 +64,14 @@ const StatItem: React.FC<{ item: typeof stats[0] }> = ({ item }) => {
 };
 
 const TrustStats: React.FC = () => {
+  const { t } = useLanguage();
+  
+  const stats = [
+    { target: 150, suffix: '+', label: t.stats.coverage },
+    { target: 0, manual: 'T+0', suffix: '', label: t.stats.clearance },
+    { target: 100, suffix: '+', label: t.stats.accounts },
+  ];
+
   return (
     <section className="py-20 md:py-32 border-b border-gray-50 bg-white">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
