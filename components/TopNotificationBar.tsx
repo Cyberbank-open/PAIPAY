@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from './LanguageContext';
 
-const TopNotificationBar: React.FC = () => {
+interface TopNotificationBarProps {
+  onNavigate?: () => void;
+}
+
+const TopNotificationBar: React.FC<TopNotificationBarProps> = ({ onNavigate }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
   const { t } = useLanguage();
@@ -26,18 +30,10 @@ const TopNotificationBar: React.FC = () => {
 
   const currentNotice = notices[currentIndex];
 
-  const scrollToInsights = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleBarClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    const element = document.getElementById('insights');
-    if (element) {
-      const offset = 140; 
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+    if (onNavigate) {
+      onNavigate();
     }
   };
 
@@ -50,22 +46,25 @@ const TopNotificationBar: React.FC = () => {
           <span className="text-cyan-400 font-bold tracking-wider uppercase hidden sm:inline">ANNOUNCEMENT</span>
         </div>
 
-        {/* Content Rotator */}
-        <div className="w-full md:w-auto text-center pr-8 md:pr-0 h-10 overflow-hidden relative flex items-center justify-center">
+        {/* Content Rotator - Clickable Area */}
+        <div 
+            className="w-full md:w-auto text-center pr-8 md:pr-0 h-10 overflow-hidden relative flex items-center justify-center cursor-pointer group"
+            onClick={handleBarClick}
+        >
           <div 
             className={`flex items-center justify-center transition-all duration-500 transform ${
               isExiting ? '-translate-y-2 opacity-0' : 'translate-y-0 opacity-100'
             }`}
           >
             <span className={`mr-2 ${currentNotice.color}`}><i className={currentNotice.icon}></i></span> 
-            <span className="truncate max-w-[200px] sm:max-w-none">{currentNotice.text}</span>
+            <span className="truncate max-w-[200px] sm:max-w-none group-hover:text-cyan-200 transition-colors">{currentNotice.text}</span>
           </div>
         </div>
 
         {/* Desktop Link */}
-        <a href="#insights" onClick={scrollToInsights} className="absolute right-4 text-gray-400 hover:text-white transition-colors hidden sm:block">
+        <button onClick={handleBarClick} className="absolute right-4 text-gray-400 hover:text-white transition-colors hidden sm:block">
           &rarr;
-        </a>
+        </button>
       </div>
     </div>
   );

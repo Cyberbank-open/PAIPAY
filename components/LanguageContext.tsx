@@ -2,6 +2,19 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export type Language = 'EN' | 'CN' | 'VN' | 'TH' | 'KH';
 
+export type MarketCategory = 'all' | 'analysis' | 'trend' | 'report';
+export type NoticeCategory = 'all' | 'system' | 'maintenance' | 'feature';
+
+export interface Article {
+  id: string;
+  category: MarketCategory | NoticeCategory; // Used for filtering logic
+  tag: string; // Display label (can remain as is for badge)
+  title: string;
+  date: string;
+  summary: string;
+  content: string;
+}
+
 interface Translations {
   [key: string]: {
     nav: {
@@ -12,6 +25,7 @@ interface Translations {
       faq: string;
       download: string;
       community: string;
+      back_home: string;
     };
     hero: {
       title_line1: string;
@@ -60,12 +74,22 @@ interface Translations {
       app_balance: string;
       app_activity: string;
     };
-    insights: {
-      title: string;
-      description: string;
-      tab_market: string;
-      tab_notice: string;
+    insights: { 
+      title: string; 
+      description: string; 
+      notice_title: string;
+      notice_description: string;
+      tab_market: string; 
+      tab_notice: string; 
       chart_title: string;
+      view_all: string;
+      read_more: string;
+      market_items: Article[];
+      notice_items: Article[];
+      categories: {
+        market: { [key in MarketCategory]: string };
+        notice: { [key in NoticeCategory]: string };
+      }
     };
     developers: {
       title: string;
@@ -104,9 +128,32 @@ interface Translations {
   };
 }
 
+const commonContent = {
+  en_market: [
+    { id: 'm1', category: 'report', tag: 'INSIGHT', title: '2025 Cross-Border Payment Whitepaper', date: 'Oct 24, 2024', summary: 'Deep dive into how hybrid financial architecture is reshaping the SEA payment corridor.', content: 'The landscape of cross-border payments is undergoing a seismic shift. Traditional correspondent banking models are being challenged by blockchain-based settlement layers that offer near-instant finality. This whitepaper explores the integration of stablecoins into institutional flows...' },
+    { id: 'm2', category: 'analysis', tag: 'MARKET', title: 'FX Weekly: DXY Volatility Analysis', date: 'Oct 22, 2024', summary: 'The DXY is trending upwards this week. Exporters are advised to lock in forward rates.', content: 'With the Federal Reserve signaling a "higher for longer" interest rate environment, the DXY index has broken through key resistance levels. Emerging market currencies are facing pressure, creating arbitrage opportunities for liquidity providers...' },
+    { id: 'm3', category: 'trend', tag: 'TREND', title: 'Stablecoin Volume Surpasses Visa in SEA', date: 'Oct 18, 2024', summary: 'On-chain data reveals a historic flip in transaction volume for Q3 2024.', content: 'For the first time in history, the aggregate volume of USD-pegged stablecoins settled on TRON and Solana networks in Southeast Asia has surpassed Visa\'s regional settlement volume. This marks a turning point for utility-based crypto adoption...' }
+  ] as Article[],
+  cn_market: [
+    { id: 'm1', category: 'report', tag: '深度洞察', title: '2025 跨境支付白皮书', date: '2024年10月24日', summary: '深入剖析混合金融架构如何重塑东南亚支付走廊。', content: '跨境支付格局正在经历一场巨变。传统的代理行模式正受到区块链结算层的挑战，后者提供了近乎即时的最终性。本白皮书探讨了稳定币如何融入机构资金流...' },
+    { id: 'm2', category: 'analysis', tag: '市场分析', title: '外汇周报：DXY 波动指数分析', date: '2024年10月22日', summary: '本周美元指数呈上升趋势，建议出口商锁定远期汇率。', content: '随着美联储释放“长期高息”的信号，美元指数已突破关键阻力位。新兴市场货币正面临压力，为流动性提供商创造了套利机会...' },
+    { id: 'm3', category: 'trend', tag: '趋势', title: '东南亚稳定币交易量超越 Visa', date: '2024年10月18日', summary: '链上数据显示 2024 年第三季度交易量出现历史性反转。', content: '历史上首次，在东南亚地区，基于 TRON 和 Solana 网络的美元稳定币结算总量超过了 Visa 的区域结算量。这标志着基于实用性的加密货币采用出现了转折点...' }
+  ] as Article[],
+  en_notice: [
+    { id: 'n1', category: 'feature', tag: 'SYSTEM', title: 'New PromptPay (Thailand) Instant Channel', date: '2h ago', summary: 'Integration with Thai National Payment Gateway completed. Supporting THB up to 2M per txn.', content: 'We are pleased to announce the full integration of Thailand\'s PromptPay system. Users can now perform instant THB payouts to any Thai bank account using just a mobile number or Citizen ID. The limit per transaction has been increased to 2M THB.' },
+    { id: 'n2', category: 'maintenance', tag: 'MAINTENANCE', title: 'Solana Node Upgrade Notice', date: '1d ago', summary: 'Scheduled for 2025-05-20 UTC 02:00. SOL deposits/withdrawals paused for ~30 mins.', content: 'To support the upcoming Solana mainnet upgrade, PAIPAY will perform node maintenance. During this window, SOL and SPL token deposits/withdrawals will be briefly paused. Trading and internal transfers remain unaffected.' },
+    { id: 'n3', category: 'system', tag: 'FEATURE', title: 'API V2.1 Now Available', date: '3d ago', summary: 'Added Batch Transfer Query endpoint and Webhook retry mechanism. Check docs.', content: 'API version 2.1 is now live in the sandbox and production environments. Key features include a new endpoint for querying batch transfer statuses in a single call, and an improved webhook delivery system with exponential backoff retries.' }
+  ] as Article[],
+  cn_notice: [
+    { id: 'n1', category: 'feature', tag: '系统更新', title: '新增 PromptPay (泰国) 极速通道', date: '2小时前', summary: '已完成与泰国国家支付网关的集成。支持单笔最高 200万泰铢。', content: '我们要很高兴地宣布，泰国的 PromptPay 系统已完全集成。用户现在可以使用手机号码或公民身份证，即时向任何泰国银行账户进行泰铢付款。单笔交易限额已提高至 200 万泰铢。' },
+    { id: 'n2', category: 'maintenance', tag: '维护公告', title: 'Solana 节点升级公告', date: '1天前', summary: '计划于 2025-05-20 UTC 02:00 进行。SOL 充提将暂停约 30 分钟。', content: '为了支持即将到来的 Solana 主网升级，PAIPAY 将进行节点维护。在此期间，SOL 和 SPL 代币的充值/提现将短暂暂停。交易和内部转账不受影响。' },
+    { id: 'n3', category: 'system', tag: '功能发布', title: 'API V2.1 版本发布', date: '3天前', summary: '新增批量转账查询接口及 Webhook 重试机制。请查看文档。', content: 'API 2.1 版本现已在沙盒和生产环境中上线。主要功能包括一个新的端点，用于在一次调用中查询批量转账状态，以及一个改进的 Webhook 交付系统，具有指数退避重试功能。' }
+  ] as Article[]
+};
+
 const translations: Translations = {
   EN: {
-    nav: { ecosystem: 'Network', features: 'Solutions', insights: 'Intelligence', developers: 'Developers', faq: 'Support', download: 'Download App', community: 'Community' },
+    nav: { ecosystem: 'Network', features: 'Solutions', insights: 'Intelligence', developers: 'Developers', faq: 'Support', download: 'Download App', community: 'Community', back_home: 'Back to Home' },
     hero: {
       title_line1: 'Next-Gen Global', title_line2: 'Clearing Rails',
       subtitle: 'Hybrid financial architecture on blockchain infrastructure. Fluid asset movement across borders with zero friction.',
@@ -128,7 +175,23 @@ const translations: Translations = {
       check1: 'Instant Fiat-Crypto On/Off Ramp', check2: 'Global Spending via Virtual Cards',
       app_received: 'Payment Received', app_balance: 'Total Asset Value', app_activity: 'Recent Transactions'
     },
-    insights: { title: 'Market Intelligence', description: 'Real-time capital flow analysis and FX trends.', tab_market: 'Market Data', tab_notice: 'System Status', chart_title: 'Global Crypto Cap' },
+    insights: { 
+      title: 'Market Intelligence', 
+      description: 'Real-time capital flow analysis and FX trends.', 
+      notice_title: 'System Announcements',
+      notice_description: 'Platform status, maintenance schedules, and new feature releases.',
+      tab_market: 'Market Data', 
+      tab_notice: 'System Status', 
+      chart_title: 'Global Crypto Cap',
+      view_all: 'View All Updates',
+      read_more: 'Read Article',
+      market_items: commonContent.en_market,
+      notice_items: commonContent.en_notice,
+      categories: {
+        market: { all: 'All', analysis: 'Analysis', trend: 'Trends', report: 'Reports' },
+        notice: { all: 'All', system: 'System', maintenance: 'Maintenance', feature: 'Features' }
+      }
+    },
     developers: { title: 'Program Money with Code', description: 'Developer-first API designed for high-frequency settlement. Integrate in minutes, scale to millions.', cta: 'Read API Docs' },
     faq: {
       title: 'Frequently Asked Questions', description: 'Technical, compliance, and product support.',
@@ -150,7 +213,7 @@ const translations: Translations = {
     }
   },
   CN: {
-    nav: { ecosystem: '生态网络', features: '解决方案', insights: '市场脉动', developers: '开发者', faq: '常见问题', download: '下载 App', community: '加入社群' },
+    nav: { ecosystem: '生态网络', features: '解决方案', insights: '市场脉动', developers: '开发者', faq: '常见问题', download: '下载 App', community: '加入社群', back_home: '返回首页' },
     hero: {
       title_line1: '下一代全球', title_line2: '清算网络',
       subtitle: '基于区块链技术的混合金融架构。让您的数字资产像呼吸一样自然地流向全球。',
@@ -172,7 +235,23 @@ const translations: Translations = {
       check1: '法币与加密货币双向无感兑换', check2: '支持 Visa/Mastercard 全球消费',
       app_received: '已收款', app_balance: '总资产', app_activity: '最近活动'
     },
-    insights: { title: '市场情报与深度洞察', description: '掌握全球加密资产与外汇流动趋势。', tab_market: '市场数据', tab_notice: '系统公告', chart_title: '全球数字货币总市值' },
+    insights: { 
+      title: '市场情报与深度洞察', 
+      description: '掌握全球加密资产与外汇流动趋势。', 
+      notice_title: '系统公告',
+      notice_description: '平台状态、系统维护通知与新功能发布。',
+      tab_market: '市场数据', 
+      tab_notice: '系统公告', 
+      chart_title: '全球数字货币总市值',
+      view_all: '查看所有',
+      read_more: '阅读全文',
+      market_items: commonContent.cn_market,
+      notice_items: commonContent.cn_notice,
+      categories: {
+        market: { all: '全部', analysis: '深度分析', trend: '市场趋势', report: '研究报告' },
+        notice: { all: '全部', system: '系统升级', maintenance: '停机维护', feature: '功能发布' }
+      }
+    },
     developers: { title: '几行代码，连接世界', description: '为开发者设计的极简 API。无论是电商结账还是批量发薪，5分钟即可完成集成。', cta: '查看 API 文档' },
     faq: {
       title: '常见问题', description: '关于产品、安全与集成的解答',
@@ -194,7 +273,7 @@ const translations: Translations = {
     }
   },
   VN: {
-    nav: { ecosystem: 'Hệ Sinh Thái', features: 'Giải Pháp', insights: 'Thị Trường', developers: 'Lập Trình Viên', faq: 'Hỗ Trợ', download: 'Tải App', community: 'Cộng Đồng' },
+    nav: { ecosystem: 'Hệ Sinh Thái', features: 'Giải Pháp', insights: 'Thị Trường', developers: 'Lập Trình Viên', faq: 'Hỗ Trợ', download: 'Tải App', community: 'Cộng Đồng', back_home: 'Trở Về' },
     hero: {
       title_line1: 'Mạng Lưới', title_line2: 'Thanh Quyết Toán Toàn Cầu',
       subtitle: 'Kiến trúc tài chính lai (Hybrid) trên nền tảng Blockchain. Giúp dòng vốn lưu thông xuyên biên giới mượt mà như hơi thở.',
@@ -216,7 +295,23 @@ const translations: Translations = {
       check1: 'Cổng Chuyển Đổi Fiat-Crypto Tức Thì', check2: 'Thẻ Ảo Visa/Mastercard Toàn Cầu',
       app_received: 'Đã Nhận Tiền', app_balance: 'Tổng Tài Sản', app_activity: 'Giao Dịch Gần Đây'
     },
-    insights: { title: 'Thông Tin Thị Trường', description: 'Phân tích dòng tiền Crypto và xu hướng ngoại hối (FX) thời gian thực.', tab_market: 'Dữ Liệu', tab_notice: 'Hệ Thống', chart_title: 'Vốn Hóa Crypto Toàn Cầu' },
+    insights: { 
+      title: 'Thông Tin Thị Trường', 
+      description: 'Phân tích dòng tiền Crypto và xu hướng ngoại hối (FX) thời gian thực.', 
+      notice_title: 'Thông Báo Hệ Thống',
+      notice_description: 'Trạng thái nền tảng, lịch bảo trì và phát hành tính năng mới.',
+      tab_market: 'Dữ Liệu', 
+      tab_notice: 'Hệ Thống', 
+      chart_title: 'Vốn Hóa Crypto Toàn Cầu',
+      view_all: 'Xem Tất Cả',
+      read_more: 'Đọc Thêm',
+      market_items: commonContent.en_market, // Using English as fallback
+      notice_items: commonContent.en_notice,
+      categories: {
+        market: { all: 'Tất cả', analysis: 'Phân Tích', trend: 'Xu Hướng', report: 'Báo Cáo' },
+        notice: { all: 'Tất cả', system: 'Hệ Thống', maintenance: 'Bảo Trì', feature: 'Tính Năng' }
+      }
+    },
     developers: { title: 'Lập Trình Dòng Tiền Bằng Code', description: 'API tối giản được thiết kế cho tốc độ cao. Tích hợp trong vài phút, mở rộng quy mô toàn cầu.', cta: 'Xem Tài Liệu API' },
     faq: {
       title: 'Câu Hỏi Thường Gặp', description: 'Giải đáp về sản phẩm, tuân thủ và kỹ thuật.',
@@ -238,7 +333,7 @@ const translations: Translations = {
     }
   },
   TH: {
-    nav: { ecosystem: 'เครือข่าย', features: 'โซลูชัน', insights: 'ข้อมูลเชิงลึก', developers: 'นักพัฒนา', faq: 'ซัพพอร์ต', download: 'ดาวน์โหลด', community: 'คอมมูนิตี้' },
+    nav: { ecosystem: 'เครือข่าย', features: 'โซลูชัน', insights: 'ข้อมูลเชิงลึก', developers: 'นักพัฒนา', faq: 'ซัพพอร์ต', download: 'ดาวน์โหลด', community: 'คอมมูนิตี้', back_home: 'หน้าหลัก' },
     hero: {
       title_line1: 'เครือข่ายการชำระดุล', title_line2: 'ระดับโลกยุคใหม่',
       subtitle: 'สถาปัตยกรรมทางการเงินแบบไฮบริดบนโครงสร้างพื้นฐานบล็อกเชน ให้การเคลื่อนย้ายสินทรัพย์ข้ามพรมแดนลื่นไหลไร้แรงเสียดทาน',
@@ -260,7 +355,23 @@ const translations: Translations = {
       check1: 'ทางด่วนแลกเปลี่ยน Fiat-Crypto ทันที', check2: 'ใช้จ่ายทั่วโลกผ่าน Virtual Cards',
       app_received: 'ได้รับชำระเงิน', app_balance: 'มูลค่าสินทรัพย์รวม', app_activity: 'ธุรกรรมล่าสุด'
     },
-    insights: { title: 'ข้อมูลตลาดเชิงลึก', description: 'วิเคราะห์กระแสเงินทุนและแนวโน้ม FX แบบเรียลไทม์', tab_market: 'ข้อมูลตลาด', tab_notice: 'สถานะระบบ', chart_title: 'มูลค่าตลาดคริปโต' },
+    insights: { 
+      title: 'ข้อมูลตลาดเชิงลึก', 
+      description: 'วิเคราะห์กระแสเงินทุนและแนวโน้ม FX แบบเรียลไทม์', 
+      notice_title: 'ประกาศระบบ',
+      notice_description: 'สถานะแพลตฟอร์ม กำหนดการบำรุงรักษา และฟีเจอร์ใหม่',
+      tab_market: 'ข้อมูลตลาด', 
+      tab_notice: 'สถานะระบบ', 
+      chart_title: 'มูลค่าตลาดคริปโต',
+      view_all: 'ดูทั้งหมด',
+      read_more: 'อ่านเพิ่มเติม',
+      market_items: commonContent.en_market,
+      notice_items: commonContent.en_notice,
+      categories: {
+        market: { all: 'ทั้งหมด', analysis: 'วิเคราะห์', trend: 'แนวโน้ม', report: 'รายงาน' },
+        notice: { all: 'ทั้งหมด', system: 'ระบบ', maintenance: 'บำรุงรักษา', feature: 'ฟีเจอร์' }
+      }
+    },
     developers: { title: 'เขียนโปรแกรมการเงินด้วยโค้ด', description: 'API ที่ออกแบบมาเพื่อการชำระดุลความถี่สูง (High-Frequency) ติดตั้งง่าย ขยายสเกลได้ทันที', cta: 'อ่านเอกสาร API' },
     faq: {
       title: 'คำถามที่พบบ่อย', description: 'ข้อมูลเทคนิค การปฏิบัติตามกฎ และผลิตภัณฑ์',
@@ -282,7 +393,7 @@ const translations: Translations = {
     }
   },
   KH: {
-    nav: { ecosystem: 'ប្រព័ន្ធបណ្តាញ', features: 'ដំណោះស្រាយ', insights: 'ព័ត៌មានទីផ្សារ', developers: 'អ្នកអភិវឌ្ឍន៍', faq: 'ជំនួយ', download: 'ទាញយក', community: 'សហគមន៍' },
+    nav: { ecosystem: 'ប្រព័ន្ធបណ្តាញ', features: 'ដំណោះស្រាយ', insights: 'ព័ត៌មានទីផ្សារ', developers: 'អ្នកអភិវឌ្ឍន៍', faq: 'ជំនួយ', download: 'ទាញយក', community: 'សហគមន៍', back_home: 'ត្រឡប់ទៅដើម' },
     hero: {
       title_line1: 'បណ្តាញទូទាត់សាច់ប្រាក់', title_line2: 'សកលជំនាន់ថ្មី',
       subtitle: 'ស្ថាបត្យកម្មហិរញ្ញវត្ថុចម្រុះ (Hybrid) លើហេដ្ឋារចនាសម្ព័ន្ធ Blockchain ។ លំហូរទ្រព្យសកម្មឆ្លងដែនដោយរលូនឥតខ្ចោះ។',
@@ -304,7 +415,23 @@ const translations: Translations = {
       check1: 'ច្រកប្តូរ Fiat-Crypto ភ្លាមៗ', check2: 'ការចាយវាយសកលតាមរយៈកាតនិម្មិត',
       app_received: 'បានទទួលការទូទាត់', app_balance: 'តម្លៃទ្រព្យសរុប', app_activity: 'ប្រតិបត្តិការថ្មីៗ'
     },
-    insights: { title: 'ការយល់ដឹងអំពីទីផ្សារ', description: 'ការវិភាគលំហូរមូលធន និងនិន្នាការ FX ជាក់ស្តែង។', tab_market: 'ទិន្នន័យ', tab_notice: 'ស្ថានភាពប្រព័ន្ធ', chart_title: 'មូលធនូបនីយកម្ម Crypto' },
+    insights: { 
+      title: 'ការយល់ដឹងអំពីទីផ្សារ', 
+      description: 'ការវិភាគលំហូរមូលធន និងនិន្នាការ FX ជាក់ស្តែង។', 
+      notice_title: 'សេចក្តីជូនដំណឹងប្រព័ន្ធ',
+      notice_description: 'ស្ថានភាពវេទិកា កាលវិភាគថែទាំ និងលក្ខណៈពិសេសថ្មី។',
+      tab_market: 'ទិន្នន័យ', 
+      tab_notice: 'ស្ថានភាពប្រព័ន្ធ', 
+      chart_title: 'មូលធនូបនីយកម្ម Crypto',
+      view_all: 'មើល​ទាំងអស់',
+      read_more: 'អានបន្ថែម',
+      market_items: commonContent.en_market,
+      notice_items: commonContent.en_notice,
+      categories: {
+        market: { all: 'ទាំងអស់', analysis: 'ការវិភាគ', trend: 'និន្នាការ', report: 'របាយការណ៍' },
+        notice: { all: 'ទាំងអស់', system: 'ប្រព័ន្ធ', maintenance: 'ថែទាំ', feature: 'លក្ខណៈពិសេស' }
+      }
+    },
     developers: { title: 'បង្កើតប្រព័ន្ធហិរញ្ញវត្ថុដោយកូដ', description: 'API ដែលរចនាឡើងសម្រាប់ការទូទាត់ប្រាក់កម្រិតខ្ពស់។ ភ្ជាប់ក្នុងរយៈពេលប៉ុន្មាននាទី។', cta: 'អានឯកសារ API' },
     faq: {
       title: 'សំណួរដែលសួរញឹកញាប់', description: 'ជំនួយបច្ចេកទេស និងផលិតផល។',

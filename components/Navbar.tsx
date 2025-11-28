@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage, Language } from './LanguageContext';
 import DownloadDrawer from './DownloadDrawer';
+import { PageView } from '../App';
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  onNavigateHome?: (view?: PageView) => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isDownloadDrawerOpen, setIsDownloadDrawerOpen] = useState(false);
@@ -41,24 +46,46 @@ const Navbar: React.FC = () => {
     setIsDownloadDrawerOpen(true);
   }
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 140; 
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+  const handleLogoClick = () => {
+    if (onNavigateHome) {
+      onNavigateHome('home');
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     closeMenu();
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const navigateToNotices = () => {
+      if (onNavigateHome) {
+          onNavigateHome('notice_hub');
+      }
+  }
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    
+    // If we are passing an onNavigateHome prop, it implies we might be on a subpage
+    if (onNavigateHome) {
+       onNavigateHome('home');
+       // Give time for state update and render before scrolling
+       setTimeout(() => {
+          const element = document.getElementById(id);
+          if (element) {
+            const offset = 140; 
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+          }
+       }, 100);
+    } else {
+        const element = document.getElementById(id);
+        if (element) {
+          const offset = 140; 
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - offset;
+          window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+        }
+    }
     closeMenu();
   };
 
@@ -87,7 +114,7 @@ const Navbar: React.FC = () => {
             {/* Logo */}
             <div 
               className="flex items-center gap-3 cursor-pointer select-none group" 
-              onClick={scrollToTop}
+              onClick={handleLogoClick}
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-400 flex items-center justify-center text-white font-bold text-lg shadow-blue-200 shadow-lg group-hover:shadow-blue-300/50 transition-all duration-300 transform group-hover:scale-105">P</div>
               <span className="font-bold text-xl tracking-tight text-gray-900 group-hover:text-blue-600 transition-colors">PAIPAY</span>
@@ -109,8 +136,17 @@ const Navbar: React.FC = () => {
               <div className="flex items-center gap-5 pl-6 border-l border-gray-200 relative">
                 <div className="flex items-center gap-3">
                    <a href="#!" onClick={handlePlaceholderClick} className="text-gray-400 hover:text-black transition-transform hover:-translate-y-1"><i className="ri-twitter-x-line text-lg"></i></a>
-                   <a href="#!" onClick={handlePlaceholderClick} className="text-gray-400 hover:text-blue-600 transition-transform hover:-translate-y-1"><i className="ri-facebook-circle-fill text-lg"></i></a>
                 </div>
+
+                {/* Notification Bell (Direct Link to System Notices) */}
+                <button 
+                    onClick={navigateToNotices}
+                    className="relative text-gray-400 hover:text-blue-600 transition-colors group"
+                    aria-label="System Notices"
+                >
+                    <i className="ri-notification-3-line text-xl"></i>
+                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                </button>
                 
                 {/* Desktop Language Switcher (Dropdown) */}
                 <div className="relative">
@@ -209,6 +245,22 @@ const Navbar: React.FC = () => {
                 </span>
               </a>
             ))}
+            
+            {/* Mobile Notification Link - CRITICAL FIX: Changed from <a> to <button> to prevent hash navigation crash */}
+            <button 
+                onClick={(e) => {
+                    e.preventDefault();
+                    if (onNavigateHome) onNavigateHome('notice_hub');
+                    closeMenu();
+                }}
+                className={`w-full text-left py-3 text-[16px] font-semibold text-gray-800 flex items-center justify-between group transition-all duration-500 transform ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}
+                style={{ transitionDelay: `0.3s` }}
+            >
+                {t.insights.tab_notice}
+                 <span className="w-8 h-8 rounded-full bg-transparent flex items-center justify-center text-red-500">
+                  <i className="ri-notification-3-fill text-lg"></i>
+                </span>
+            </button>
           </div>
 
           {/* 3. Bottom Action Area */}

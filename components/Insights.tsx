@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useLanguage } from './LanguageContext';
+import { PageView } from '../App';
 
 const data = [
   { month: 'Jan', value: 1.8 },
@@ -17,7 +18,11 @@ const data = [
   { month: 'Dec', value: 3.25 },
 ];
 
-const Insights: React.FC = () => {
+interface InsightsProps {
+  onNavigate: (view: PageView, articleId?: string, articleType?: 'market' | 'notice') => void;
+}
+
+const Insights: React.FC<InsightsProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'market' | 'notice'>('market');
   const { t } = useLanguage();
 
@@ -95,50 +100,66 @@ const Insights: React.FC = () => {
             </div>
             
             {/* Reports Column */}
-            <div className="space-y-4">
-              <div className="glass-card p-4 md:p-5 rounded-xl border-l-4 border-transparent hover:border-blue-500 cursor-pointer transition-all">
-                <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wide mb-1">INSIGHT</div>
-                <h5 className="font-bold text-gray-800 text-sm mb-1">2025 Cross-Border Payment Whitepaper</h5>
-                <p className="text-xs text-gray-500 line-clamp-2">Deep dive into how hybrid financial architecture is reshaping the SEA payment corridor...</p>
-              </div>
-              <div className="glass-card p-4 md:p-5 rounded-xl border-l-4 border-transparent hover:border-blue-500 cursor-pointer transition-all">
-                <div className="text-[10px] font-bold text-purple-600 uppercase tracking-wide mb-1">MARKET</div>
-                <h5 className="font-bold text-gray-800 text-sm mb-1">FX Weekly: DXY Volatility Analysis</h5>
-                <p className="text-xs text-gray-500 line-clamp-2">The DXY is trending upwards this week. Exporters are advised to lock in forward rates...</p>
-              </div>
+            <div className="flex flex-col gap-4">
+              {t.insights.market_items.slice(0, 2).map((item) => (
+                <div 
+                  key={item.id}
+                  onClick={() => onNavigate('article_detail', item.id, 'market')}
+                  className="glass-card p-4 md:p-5 rounded-xl border-l-4 border-transparent hover:border-blue-500 cursor-pointer transition-all flex-1"
+                >
+                  <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wide mb-1">{item.tag}</div>
+                  <h5 className="font-bold text-gray-800 text-sm mb-1">{item.title}</h5>
+                  <p className="text-xs text-gray-500 line-clamp-2">{item.summary}</p>
+                </div>
+              ))}
+              
+              <button 
+                onClick={() => onNavigate('market_hub')}
+                className="mt-auto w-full py-3 rounded-xl border border-dashed border-gray-300 text-gray-500 text-xs font-bold hover:border-blue-500 hover:text-blue-600 transition-colors"
+              >
+                {t.insights.view_all}
+              </button>
             </div>
           </div>
         )}
 
         {/* Notice Tab */}
         {activeTab === 'notice' && (
-          <div className="animate-fade-in grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 relative overflow-hidden group hover:shadow-md transition-shadow">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
-              <div className="flex justify-between items-start mb-3">
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">SYSTEM</span>
-                <span className="text-xs text-gray-400">2h ago</span>
-              </div>
-              <h5 className="font-bold text-gray-800 mb-2 text-sm">New PromptPay (Thailand) Instant Channel</h5>
-              <p className="text-xs text-gray-600 leading-relaxed">Integration with Thai National Payment Gateway completed. Supporting THB up to 2M per txn.</p>
+          <div className="animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {t.insights.notice_items.slice(0, 3).map((item, index) => {
+                const colors = [
+                   { border: 'bg-blue-500', bg: 'bg-blue-50/50', badge_bg: 'bg-blue-100', badge_text: 'text-blue-700' },
+                   { border: 'bg-orange-400', bg: 'bg-gray-50/50', badge_bg: 'bg-orange-100', badge_text: 'text-orange-700' },
+                   { border: 'bg-green-500', bg: 'bg-gray-50/50', badge_bg: 'bg-green-100', badge_text: 'text-green-700' },
+                ];
+                const color = colors[index % colors.length];
+                
+                return (
+                  <div 
+                    key={item.id}
+                    onClick={() => onNavigate('article_detail', item.id, 'notice')}
+                    className={`${color.bg} p-6 rounded-xl border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer`}
+                  >
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${color.border}`}></div>
+                    <div className="flex justify-between items-start mb-3">
+                      <span className={`px-2 py-1 ${color.badge_bg} ${color.badge_text} text-[10px] font-bold rounded`}>{item.tag}</span>
+                      <span className="text-xs text-gray-400">{item.date}</span>
+                    </div>
+                    <h5 className="font-bold text-gray-800 mb-2 text-sm">{item.title}</h5>
+                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">{item.summary}</p>
+                  </div>
+                );
+              })}
             </div>
-             <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-400"></div>
-              <div className="flex justify-between items-start mb-3">
-                <span className="px-2 py-1 bg-orange-100 text-orange-700 text-[10px] font-bold rounded">MAINTENANCE</span>
-                <span className="text-xs text-gray-400">1d ago</span>
-              </div>
-              <h5 className="font-bold text-gray-800 mb-2 text-sm">Solana Node Upgrade Notice</h5>
-              <p className="text-xs text-gray-600 leading-relaxed">Scheduled for 2025-05-20 UTC 02:00. SOL deposits/withdrawals paused for ~30 mins.</p>
-            </div>
-             <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
-              <div className="flex justify-between items-start mb-3">
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded">FEATURE</span>
-                <span className="text-xs text-gray-400">3d ago</span>
-              </div>
-              <h5 className="font-bold text-gray-800 mb-2 text-sm">API V2.1 Now Available</h5>
-              <p className="text-xs text-gray-600 leading-relaxed">Added Batch Transfer Query endpoint and Webhook retry mechanism. Check docs.</p>
+            
+            <div className="flex justify-center">
+               <button 
+                  onClick={() => onNavigate('notice_hub')}
+                  className="px-8 py-3 rounded-full bg-white border border-gray-200 text-gray-600 text-sm font-bold shadow-sm hover:shadow-md hover:border-blue-300 hover:text-blue-600 transition-all"
+                >
+                  {t.insights.view_all}
+                </button>
             </div>
           </div>
         )}
