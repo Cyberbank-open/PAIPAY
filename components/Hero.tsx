@@ -1,8 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from './LanguageContext';
+import DownloadDrawer from './DownloadDrawer';
 
 const Hero: React.FC = () => {
   const { t } = useLanguage();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const TickerContent = () => (
+    <div className="inline-flex items-center">
+        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-500 font-medium">Global Cap: <span className="text-blue-600 font-bold">$3.12T</span></span>
+        <span className="text-gray-300">|</span>
+        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">BTC <span className="text-[#059669] font-semibold">$98,420 (+1.2%)</span></span>
+        <span className="text-gray-300">|</span>
+        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">ETH <span className="text-[#DC2626] font-semibold">$3,650 (-0.5%)</span></span>
+        <span className="text-gray-300">|</span>
+        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">SOL <span className="text-[#059669] font-semibold">$145 (+3.1%)</span></span>
+        <span className="text-gray-300">|</span>
+        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">USD/CNY <span className="text-gray-800 font-bold">7.24</span></span>
+        <span className="text-gray-300">|</span>
+        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">Gas: <span className="text-[#059669] font-semibold">12 gwei</span></span>
+        <span className="text-gray-300 mr-6">|</span>
+    </div>
+  );
 
   return (
     <section className="relative min-h-[92vh] flex flex-col justify-center overflow-hidden pt-16 md:pt-0">
@@ -62,11 +81,21 @@ const Hero: React.FC = () => {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6 px-6 md:px-0 w-full sm:w-auto">
-            <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-blue-600 text-white font-semibold text-[15px] hover:bg-blue-700 hover:shadow-blue-200/50 hover:shadow-xl transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 group shadow-lg shadow-blue-600/20">
-              {t.hero.cta_start} <i className="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
+          <div className="flex flex-col sm:flex-row justify-center gap-5 pt-8 px-6 md:px-0 w-full sm:w-auto">
+            {/* START BUTTON - PURE CLEAN STYLE */}
+            <button 
+              onClick={() => setIsDrawerOpen(true)}
+              className="group relative w-full sm:w-auto"
+            >
+              <div className="relative w-full sm:w-auto px-9 py-4 rounded-full bg-blue-600 text-white font-bold text-[15px] leading-none flex items-center justify-center gap-2 transition-all duration-300 transform hover:bg-blue-500 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(37,99,235,0.4)] shadow-[0_4px_14px_rgba(37,99,235,0.3)] active:scale-95">
+                  <span className="relative z-10 flex items-center gap-2 tracking-wide">
+                     {t.hero.cta_start} 
+                     <i className="ri-arrow-right-line text-lg group-hover:translate-x-1 transition-transform duration-300"></i>
+                  </span>
+              </div>
             </button>
-            <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-gray-700 border border-gray-200 font-medium text-[15px] hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 active:scale-95">
+            
+            <button className="w-full sm:w-auto px-9 py-4 rounded-full bg-white text-gray-600 border border-gray-200 font-semibold text-[15px] hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all duration-300 active:scale-95 shadow-sm">
               {t.hero.cta_contact}
             </button>
           </div>
@@ -104,25 +133,11 @@ const Hero: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Integrated Drawer */}
+      <DownloadDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
     </section>
   );
 };
-
-const TickerContent = () => (
-    <div className="inline-flex items-center">
-        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-500 font-medium">Global Cap: <span className="text-blue-600 font-bold">$3.12T</span></span>
-        <span className="text-gray-300">|</span>
-        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">BTC <span className="text-[#059669] font-semibold">$98,420 (+1.2%)</span></span>
-        <span className="text-gray-300">|</span>
-        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">ETH <span className="text-[#DC2626] font-semibold">$3,650 (-0.5%)</span></span>
-        <span className="text-gray-300">|</span>
-        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">SOL <span className="text-[#059669] font-semibold">$145 (+3.1%)</span></span>
-        <span className="text-gray-300">|</span>
-        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">USD/CNY <span className="text-gray-800 font-bold">7.24</span></span>
-        <span className="text-gray-300">|</span>
-        <span className="px-6 text-xs md:text-sm font-mono tracking-wide text-gray-600">Gas: <span className="text-[#059669] font-semibold">12 gwei</span></span>
-        <span className="text-gray-300 mr-6">|</span>
-    </div>
-)
 
 export default Hero;
