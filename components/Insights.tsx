@@ -20,9 +20,9 @@ const Insights: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'market' | 'notice'>('market');
 
   return (
-    <section id="insights" className="pt-12 pb-20 md:pb-24 bg-white">
+    <section id="insights" className="py-20 md:py-32 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="text-center mb-8 md:mb-10">
+        <div className="text-center mb-12 md:mb-20">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">市场情报与深度洞察</h2>
           <p className="text-sm md:text-base text-gray-500 mt-2">掌握全球加密资产与外汇流动趋势。</p>
         </div>
@@ -30,7 +30,7 @@ const Insights: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Interactive Tabs */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-10">
           <div className="bg-gray-100 p-1 rounded-lg flex space-x-1">
             <button 
               onClick={() => setActiveTab('market')} 

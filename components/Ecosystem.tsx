@@ -9,9 +9,9 @@ const partners = [
 
 const Ecosystem: React.FC = () => {
   return (
-    <section id="ecosystem" className="py-16 md:py-24 bg-white relative">
+    <section id="ecosystem" className="py-20 md:py-32 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12 md:mb-16">
+        <div className="text-center mb-12 md:mb-20">
           <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">由全球顶级金融机构提供流动性支持</h3>
           <p className="text-sm md:text-base text-gray-500 max-w-2xl mx-auto">
             连接国际一级银行、本地清算巨头与卡组织，构建稳如磐石的支付网络。
