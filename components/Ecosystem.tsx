@@ -22,6 +22,14 @@ const partners = [
 const Ecosystem: React.FC = () => {
   const { t } = useLanguage();
 
+  const handlePartnerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
+  const handlePartnerDoubleClick = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   return (
     <section id="ecosystem" className="py-20 md:py-32 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,12 +43,11 @@ const Ecosystem: React.FC = () => {
         {/* Logo Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-y-12 gap-x-6 md:gap-12 items-center justify-items-center opacity-90">
           {partners.map((partner, index) => (
-            <a 
+            <div 
               key={index} 
-              href={partner.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`group relative text-lg md:text-xl font-bold cursor-pointer transition-all duration-300 text-[#8E9BAE] hover:text-[#333333] hover:scale-105
+              onClick={handlePartnerClick}
+              onDoubleClick={() => handlePartnerDoubleClick(partner.url)}
+              className={`group relative text-lg md:text-xl font-bold cursor-pointer transition-all duration-300 text-[#8E9BAE] hover:text-[#333333] hover:scale-105 active:scale-95 active:text-blue-600 select-none touch-manipulation
                 ${partner.name === 'Citi' ? 'font-serif' : ''}
                 ${partner.name === 'HSBC' ? 'font-serif tracking-wide' : ''}
                 ${partner.name === 'Visa' ? 'italic text-xl md:text-2xl' : ''}
@@ -56,7 +63,7 @@ const Ecosystem: React.FC = () => {
               
               {/* Subtle Glow on Hover */}
               <span className="absolute -inset-4 bg-gray-50/0 rounded-lg group-hover:bg-gray-50/80 -z-10 transition-colors duration-300"></span>
-            </a>
+            </div>
           ))}
         </div>
       </div>

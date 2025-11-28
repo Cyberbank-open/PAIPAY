@@ -11,6 +11,14 @@ const Compliance: React.FC = () => {
     { icon: 'ri-government-line', label: t.compliance.license, value: 'US MSB', url: 'https://www.fincen.gov/money-services-business-definition' },
   ];
 
+  const handleBadgeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
+  const handleBadgeDoubleClick = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   return (
     <section className="py-16 md:py-24 bg-[#F9FAFB] border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,12 +30,11 @@ const Compliance: React.FC = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full md:w-auto">
             {badges.map((badge, idx) => (
-              <a 
+              <div 
                 key={idx} 
-                href={badge.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative h-full min-h-[64px] w-full bg-white border border-gray-200/60 px-4 py-3 rounded-lg flex items-center justify-start gap-3 cursor-pointer group shadow-[0_2px_4px_rgba(0,0,0,0.02)] hover:border-green-500/30 hover:shadow-[0_4px_12px_rgba(16,185,129,0.1)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                onClick={handleBadgeClick}
+                onDoubleClick={() => handleBadgeDoubleClick(badge.url)}
+                className="relative h-full min-h-[64px] w-full bg-white border border-gray-200/60 px-4 py-3 rounded-lg flex items-center justify-start gap-3 cursor-pointer group shadow-[0_2px_4px_rgba(0,0,0,0.02)] hover:border-green-500/30 hover:shadow-[0_4px_12px_rgba(16,185,129,0.1)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] active:border-green-500 transition-all duration-200 overflow-hidden select-none touch-manipulation"
               >
                 {/* Hover Highlight Effect */}
                 <div className="absolute top-0 left-0 w-1 h-full bg-green-500 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
@@ -42,7 +49,7 @@ const Compliance: React.FC = () => {
                 <div className="absolute top-2 right-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                     <i className="ri-arrow-right-up-line text-xs text-green-500"></i>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
         </div>
