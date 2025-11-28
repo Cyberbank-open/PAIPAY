@@ -92,46 +92,62 @@ interface Translations {
       n1: string;
       n2: string;
       n3: string;
-    }
+    };
+    download_drawer: {
+      select_title: string;
+      select_subtitle: string;
+      ios_tip: string;
+      android_rec: string;
+      btn_back: string;
+      btn_confirm: string;
+    };
   };
 }
 
 const translations: Translations = {
   EN: {
-    nav: { ecosystem: 'Ecosystem', features: 'Solutions', insights: 'Insights', developers: 'Developers', faq: 'FAQ', download: 'Download App', community: 'Join Community' },
+    nav: { ecosystem: 'Network', features: 'Solutions', insights: 'Intelligence', developers: 'Developers', faq: 'Support', download: 'Download App', community: 'Community' },
     hero: {
-      title_line1: 'Next Gen Global', title_line2: 'Clearing Network',
-      subtitle: 'Blockchain-based hybrid financial architecture. Enabling frictionless cross-border asset liquidity.',
+      title_line1: 'Next-Gen Global', title_line2: 'Clearing Rails',
+      subtitle: 'Hybrid financial architecture on blockchain infrastructure. Fluid asset movement across borders with zero friction.',
       cta_start: 'Get Started', cta_contact: 'Contact Sales',
       card_holder: 'CARD HOLDER', card_level: 'BUSINESS ELITE'
     },
-    stats: { coverage: 'Countries', clearance: 'Settlement', accounts: 'Native Currencies' },
-    ecosystem: { title: 'Liquidity Backed by Top Tier Institutions', description: 'Connecting global tier-1 banks, local clearing rails, and card schemes.' },
-    compliance: { title: 'Global Standards, Sovereign Compliance', description: 'Every transaction is audited and protected by bank-grade security protocols.', certified: 'Certified', standard: 'Standard', security: 'Security', license: 'License' },
+    stats: { coverage: 'Global Markets', clearance: 'Settlement Time', accounts: 'Native Accounts' },
+    ecosystem: { title: 'Deep Liquidity via Tier-1 Institutions', description: 'Direct integration with global money center banks, local clearing houses, and card schemes.' },
+    compliance: { title: 'Global Standards, Sovereign Compliance', description: 'Bank-grade audit trails and security protocols ensuring absolute asset integrity.', certified: 'Certified', standard: 'Standard', security: 'Security', license: 'License' },
     features: {
-      title: 'Full-Stack Financial Solutions', description: 'Seamless payment experience for individuals and enterprises.',
-      card1_title: 'Borderless Payments', card1_desc: 'Break geographical boundaries. Instant fund movement across 150+ countries via direct local clearing rails.',
-      card2_title: 'Transparent FX', card2_desc: 'Smart routing engine finds the best global rates. Zero hidden fees, clear cost structure.',
-      card3_title: 'Sovereign Security', card3_desc: 'Enterprise multi-sig wallets with private key sharding. Absolute asset sovereignty and governance.'
+      title: 'Full-Stack Financial Infrastructure', description: 'Seamless payment rails for modern enterprises and digital natives.',
+      card1_title: 'Borderless Settlement', card1_desc: 'Dissolve geographical barriers. Instant fund movement across 150+ jurisdictions via local rails.',
+      card2_title: 'Transparent FX', card2_desc: 'Smart routing engine executes at interbank mid-market rates. Zero hidden spreads.',
+      card3_title: 'Institutional Custody', card3_desc: 'Enterprise MPC wallets with private key sharding. Governance controls for treasury management.'
     },
     lifestyle: {
-      tag: 'Lifestyle Integration', title_line1: 'Work in Web3', title_line2: 'Live in Reality',
-      description: 'Whether you are a nomad in Bali or a merchant in Yiwu, PAIPAY removes technical friction. No complex on-chain ops, just the sound of funds arriving.',
-      check1: 'Seamless Fiat-Crypto Swap', check2: 'Global Visa/Mastercard Spending',
-      app_received: 'Payment Received', app_balance: 'Total Balance', app_activity: 'Recent Activity'
+      tag: 'Lifestyle Integration', title_line1: 'Native to Web3', title_line2: 'Living in Reality',
+      description: 'Whether you are a nomad in Bali or a merchant in Yiwu, PAIPAY abstracts the complexity. No on-chain friction, just instant liquidity.',
+      check1: 'Instant Fiat-Crypto On/Off Ramp', check2: 'Global Spending via Virtual Cards',
+      app_received: 'Payment Received', app_balance: 'Total Asset Value', app_activity: 'Recent Transactions'
     },
-    insights: { title: 'Market Intelligence', description: 'Real-time crypto assets and FX flow trends.', tab_market: 'Market Data', tab_notice: 'System Notice', chart_title: 'Global Crypto Cap' },
-    developers: { title: 'Connect the World in Lines of Code', description: 'Minimalist API designed for speed. Integration in minutes.', cta: 'View API Docs' },
+    insights: { title: 'Market Intelligence', description: 'Real-time capital flow analysis and FX trends.', tab_market: 'Market Data', tab_notice: 'System Status', chart_title: 'Global Crypto Cap' },
+    developers: { title: 'Program Money with Code', description: 'Developer-first API designed for high-frequency settlement. Integrate in minutes, scale to millions.', cta: 'Read API Docs' },
     faq: {
-      title: 'Frequently Asked Questions', description: 'Answers about product, security, and integration.',
-      q1: 'Supported countries and currencies?', a1: 'PAIPAY covers 150+ countries, supporting 100+ native fiat currencies and major crypto assets.',
-      q2: 'How is fund security guaranteed?', a2: 'We use ISO 27001 standards and hold PCI-DSS L1. Assets are managed via multi-sig and private key sharding.',
-      q3: 'Integration time for API?', a3: 'Typically 1-3 days for sandbox testing and production deployment.',
-      q4: 'What are the FX rates?', a4: 'Transparent interbank rates with no hidden markups via our smart routing engine.',
-      q5: 'Is it for individuals?', a5: 'Yes, both individuals and enterprises can use PAIPAY.'
+      title: 'Frequently Asked Questions', description: 'Technical, compliance, and product support.',
+      q1: 'Supported jurisdictions and currencies?', a1: 'PAIPAY operates in 150+ markets, supporting 100+ native fiat currencies and major digital assets.',
+      q2: 'How is asset security guaranteed?', a2: 'We utilize ISO 27001 certified infrastructure and MPC technology. Assets are segregated and fully audited.',
+      q3: 'What is the API integration timeline?', a3: 'Production keys can be issued within 1-3 business days after compliance verification.',
+      q4: 'How is FX pricing determined?', a4: 'We provide real-time interbank rates with transparent fee structures. No hidden markups.',
+      q5: 'Do you support individual accounts?', a5: 'Yes, we offer both personal wealth accounts and enterprise treasury solutions.'
     },
-    footer: { ready: 'Ready to upgrade your financial experience?', rights: 'All rights reserved.', privacy: 'Privacy Policy', terms: 'Terms of Service', compliance: 'Compliance' },
-    notices: { n1: 'New: Enterprise Multi-sig Wallet & Smart Treasury', n2: 'B2B Solutions: One-stop Global Clearing Integration', n3: 'Security Upgrade: Private Key Sharding Technology' }
+    footer: { ready: 'Ready to upgrade your financial stack?', rights: 'All rights reserved.', privacy: 'Privacy Policy', terms: 'Terms of Service', compliance: 'Compliance' },
+    notices: { n1: 'New: Enterprise MPC Wallet & Treasury OS', n2: 'B2B Rails: Unified Global Settlement API', n3: 'Security Update: Enhanced Private Key Sharding' },
+    download_drawer: {
+      select_title: 'Download App',
+      select_subtitle: 'Select your platform',
+      ios_tip: 'Tip: If not found in local store, please switch to Global (US/SG) region.',
+      android_rec: 'Google Play recommended for auto-updates',
+      btn_back: 'Back',
+      btn_confirm: 'Confirm'
+    }
   },
   CN: {
     nav: { ecosystem: '生态网络', features: '解决方案', insights: '市场脉动', developers: '开发者', faq: '常见问题', download: '下载 App', community: '加入社群' },
@@ -167,115 +183,147 @@ const translations: Translations = {
       q5: '是否支持个人用户注册？', a5: '是的，PAIPAY 同时服务于个人与企业用户。'
     },
     footer: { ready: '准备好升级您的金融体验了吗？', rights: '保留所有权利。', privacy: '隐私政策', terms: '服务条款', compliance: '合规中心' },
-    notices: { n1: '全新推出：企业级多签钱包与智能财务系统', n2: 'B2B 解决方案上线：一站式集成全球清算能力', n3: '安全升级：私钥分片技术保障资金绝对主权' }
+    notices: { n1: '全新推出：企业级多签钱包与智能财务系统', n2: 'B2B 解决方案上线：一站式集成全球清算能力', n3: '安全升级：私钥分片技术保障资金绝对主权' },
+    download_drawer: {
+      select_title: '下载 App',
+      select_subtitle: '请选择您的平台',
+      ios_tip: '温馨提示：若在本地商店未找到，请切换至美区(Global)商店。',
+      android_rec: '推荐使用 Google Play 获取自动更新',
+      btn_back: '返回',
+      btn_confirm: '确认前往'
+    }
   },
   VN: {
-    nav: { ecosystem: 'Hệ Sinh Thái', features: 'Giải Pháp', insights: 'Thị Trường', developers: 'Lập Trình Viên', faq: 'Hỏi Đáp', download: 'Tải App', community: 'Cộng Đồng' },
+    nav: { ecosystem: 'Hệ Sinh Thái', features: 'Giải Pháp', insights: 'Thị Trường', developers: 'Lập Trình Viên', faq: 'Hỗ Trợ', download: 'Tải App', community: 'Cộng Đồng' },
     hero: {
-      title_line1: 'Mạng Lưới', title_line2: 'Thanh Toán Toàn Cầu',
-      subtitle: 'Kiến trúc tài chính lai dựa trên Blockchain. Giúp tài sản kỹ thuật số lưu thông tự nhiên như hơi thở.',
-      cta_start: 'Bắt Đầu', cta_contact: 'Liên Hệ Sale',
+      title_line1: 'Mạng Lưới', title_line2: 'Thanh Quyết Toán Toàn Cầu',
+      subtitle: 'Kiến trúc tài chính lai (Hybrid) trên nền tảng Blockchain. Giúp dòng vốn lưu thông xuyên biên giới mượt mà như hơi thở.',
+      cta_start: 'Bắt Đầu Ngay', cta_contact: 'Liên Hệ Doanh Nghiệp',
       card_holder: 'CHỦ THẺ', card_level: 'DOANH NHÂN'
     },
-    stats: { coverage: 'Quốc Gia', clearance: 'Thanh Toán', accounts: 'Tiền Tệ Gốc' },
-    ecosystem: { title: 'Thanh Khoản Từ Các Định Chế Tài Chính Hàng Đầu', description: 'Kết nối các ngân hàng cấp 1 quốc tế và cổng thanh toán địa phương.' },
-    compliance: { title: 'Tiêu Chuẩn Toàn Cầu, Tuân Thủ Tuyệt Đối', description: 'Mọi giao dịch đều được kiểm toán và bảo vệ bởi bảo mật cấp ngân hàng.', certified: 'Chứng Nhận', standard: 'Tiêu Chuẩn', security: 'Bảo Mật', license: 'Giấy Phép' },
+    stats: { coverage: 'Quốc Gia & Vùng Lãnh Thổ', clearance: 'Tốc Độ Quyết Toán', accounts: 'Tài Khoản Bản Địa' },
+    ecosystem: { title: 'Thanh Khoản Từ Các Định Chế Tài Chính Cấp 1', description: 'Kết nối trực tiếp với các ngân hàng trung tâm toàn cầu và cổng thanh toán địa phương (Local Rails).' },
+    compliance: { title: 'Tiêu Chuẩn Toàn Cầu, Tuân Thủ Chủ Quyền', description: 'Mọi giao dịch đều được kiểm toán nghiêm ngặt và bảo vệ bởi các giao thức bảo mật cấp ngân hàng.', certified: 'Chứng Nhận', standard: 'Tiêu Chuẩn', security: 'Bảo Mật', license: 'Giấy Phép' },
     features: {
-      title: 'Giải Pháp Tài Chính Toàn Diện', description: 'Trải nghiệm thanh toán liền mạch cho cá nhân và doanh nghiệp.',
-      card1_title: 'Thanh Toán Không Biên Giới', card1_desc: 'Xóa bỏ rào cản địa lý. Chuyển tiền tức thì qua 150+ quốc gia.',
-      card2_title: 'Tỷ Giá Minh Bạch', card2_desc: 'Công cụ định tuyến thông minh tìm tỷ giá tốt nhất toàn cầu. Không phí ẩn.',
-      card3_title: 'Bảo Mật Tuyệt Đối', card3_desc: 'Ví đa chữ ký doanh nghiệp và công nghệ phân mảnh khóa riêng tư (Private Key Sharding).'
+      title: 'Hạ Tầng Tài Chính Toàn Diện', description: 'Trải nghiệm thanh toán không gián đoạn cho cá nhân và doanh nghiệp số.',
+      card1_title: 'Thanh Toán Xuyên Biên Giới', card1_desc: 'Xóa bỏ rào cản địa lý. Điều chuyển vốn tức thì qua 150+ quốc gia thông qua hệ thống thanh toán địa phương.',
+      card2_title: 'Tỷ Giá Minh Bạch (FX)', card2_desc: 'Công cụ định tuyến thông minh khớp lệnh theo tỷ giá liên ngân hàng. Không có phí ẩn (Zero spread).',
+      card3_title: 'Bảo Mật Cấp Tổ Chức', card3_desc: 'Ví doanh nghiệp Multi-sig và công nghệ phân mảnh khóa riêng tư (MPC). Quản trị ngân khố chuyên nghiệp.'
     },
     lifestyle: {
-      tag: 'Phong Cách Sống', title_line1: 'Làm Việc Web3', title_line2: 'Sống Thực Tế',
-      description: 'Dù bạn ở Bali hay Yiwu, PAIPAY loại bỏ mọi rào cản kỹ thuật. Không thao tác on-chain phức tạp.',
-      check1: 'Chuyển Đổi Fiat-Crypto Liền Mạch', check2: 'Chi Tiêu Visa/Mastercard Toàn Cầu',
-      app_received: 'Đã Nhận Tiền', app_balance: 'Tổng Số Dư', app_activity: 'Hoạt Động'
+      tag: 'Phong Cách Sống Web3', title_line1: 'Làm Việc Web3', title_line2: 'Sống Thực Tế',
+      description: 'Dù bạn là Digital Nomad tại Bali hay thương nhân tại Yiwu, PAIPAY loại bỏ mọi phức tạp kỹ thuật. Không rào cản On-chain.',
+      check1: 'Cổng Chuyển Đổi Fiat-Crypto Tức Thì', check2: 'Thẻ Ảo Visa/Mastercard Toàn Cầu',
+      app_received: 'Đã Nhận Tiền', app_balance: 'Tổng Tài Sản', app_activity: 'Giao Dịch Gần Đây'
     },
-    insights: { title: 'Thông Tin Thị Trường', description: 'Xu hướng dòng tiền Crypto và FX thời gian thực.', tab_market: 'Dữ Liệu', tab_notice: 'Thông Báo', chart_title: 'Vốn Hóa Crypto Toàn Cầu' },
-    developers: { title: 'Kết Nối Thế Giới Bằng Vài Dòng Code', description: 'API tối giản được thiết kế cho tốc độ. Tích hợp trong vài phút.', cta: 'Xem Tài Liệu API' },
+    insights: { title: 'Thông Tin Thị Trường', description: 'Phân tích dòng tiền Crypto và xu hướng ngoại hối (FX) thời gian thực.', tab_market: 'Dữ Liệu', tab_notice: 'Hệ Thống', chart_title: 'Vốn Hóa Crypto Toàn Cầu' },
+    developers: { title: 'Lập Trình Dòng Tiền Bằng Code', description: 'API tối giản được thiết kế cho tốc độ cao. Tích hợp trong vài phút, mở rộng quy mô toàn cầu.', cta: 'Xem Tài Liệu API' },
     faq: {
-      title: 'Câu Hỏi Thường Gặp', description: 'Giải đáp về sản phẩm, bảo mật và tích hợp.',
-      q1: 'Hỗ trợ quốc gia và tiền tệ nào?', a1: 'PAIPAY phủ sóng 150+ quốc gia, hỗ trợ 100+ loại tiền tệ fiat và crypto.',
-      q2: 'Bảo mật tiền như thế nào?', a2: 'Tiêu chuẩn ISO 27001 và PCI-DSS L1. Quản lý tài sản qua ví đa chữ ký.',
-      q3: 'Thời gian tích hợp API?', a3: 'Thường mất 1-3 ngày để kiểm thử sandbox và triển khai.',
-      q4: 'Phí chuyển tiền quốc tế?', a4: 'Tỷ giá minh bạch, không phí ẩn thông qua công cụ định tuyến thông minh.',
-      q5: 'Cá nhân có được đăng ký không?', a5: 'Có, PAIPAY phục vụ cả cá nhân và doanh nghiệp.'
+      title: 'Câu Hỏi Thường Gặp', description: 'Giải đáp về sản phẩm, tuân thủ và kỹ thuật.',
+      q1: 'Hỗ trợ những quốc gia và loại tiền nào?', a1: 'PAIPAY hoạt động tại 150+ thị trường, hỗ trợ 100+ loại tiền pháp định bản địa và tài sản số.',
+      q2: 'Tài sản được bảo vệ như thế nào?', a2: 'Chúng tôi sử dụng hạ tầng chuẩn ISO 27001 và công nghệ MPC. Tài sản được tách biệt và kiểm toán đầy đủ.',
+      q3: 'Thời gian tích hợp API là bao lâu?', a3: 'Key môi trường Production có thể được cấp trong 1-3 ngày làm việc sau khi xác minh.',
+      q4: 'Cơ chế tỷ giá FX như thế nào?', a4: 'Chúng tôi cung cấp tỷ giá liên ngân hàng thời gian thực với cấu trúc phí minh bạch.',
+      q5: 'Có hỗ trợ tài khoản cá nhân không?', a5: 'Có, chúng tôi cung cấp cả tài khoản cá nhân và giải pháp quản lý ngân khố doanh nghiệp.'
     },
-    footer: { ready: 'Sẵn sàng nâng cấp trải nghiệm tài chính?', rights: 'Mọi quyền được bảo lưu.', privacy: 'Chính Sách', terms: 'Điều Khoản', compliance: 'Tuân Thủ' },
-    notices: { n1: 'Mới: Ví Đa Chữ Ký Doanh Nghiệp & Quản Lý Ngân Khố', n2: 'Giải Pháp B2B: Tích Hợp Thanh Toán Toàn Cầu', n3: 'Nâng Cấp Bảo Mật: Công Nghệ Phân Mảnh Khóa Riêng Tư' }
+    footer: { ready: 'Sẵn sàng nâng cấp trải nghiệm tài chính?', rights: 'Bảo lưu mọi quyền.', privacy: 'Chính Sách', terms: 'Điều Khoản', compliance: 'Tuân Thủ' },
+    notices: { n1: 'Mới: Ví MPC Doanh Nghiệp & Hệ Điều Hành Ngân Khố', n2: 'Giải Pháp B2B: API Quyết Toán Toàn Cầu Hợp Nhất', n3: 'Nâng Cấp Bảo Mật: Tăng Cường Phân Mảnh Private Key' },
+    download_drawer: {
+      select_title: 'Tải Ứng Dụng',
+      select_subtitle: 'Chọn nền tảng của bạn',
+      ios_tip: 'Mẹo: Nếu không tìm thấy, vui lòng chuyển vùng App Store sang Global (US/SG).',
+      android_rec: 'Khuyên dùng Google Play để tự động cập nhật',
+      btn_back: 'Quay lại',
+      btn_confirm: 'Xác nhận'
+    }
   },
   TH: {
-    nav: { ecosystem: 'ระบบนิเวศ', features: 'โซลูชัน', insights: 'ข้อมูลเชิงลึก', developers: 'นักพัฒนา', faq: 'ถาม-ตอบ', download: 'โหลดแอป', community: 'ชุมชน' },
+    nav: { ecosystem: 'เครือข่าย', features: 'โซลูชัน', insights: 'ข้อมูลเชิงลึก', developers: 'นักพัฒนา', faq: 'ซัพพอร์ต', download: 'ดาวน์โหลด', community: 'คอมมูนิตี้' },
     hero: {
-      title_line1: 'เครือข่ายชำระเงิน', title_line2: 'ระดับโลกยุคใหม่',
-      subtitle: 'สถาปัตยกรรมทางการเงินแบบไฮบริดบนบล็อกเชน ให้สินทรัพย์ดิจิทัลไหลเวียนอย่างเป็นธรรมชาติ',
-      cta_start: 'เริ่มต้นใช้งาน', cta_contact: 'ติดต่อฝ่ายขาย',
-      card_holder: 'ผู้ถือบัตร', card_level: 'นักธุรกิจ'
+      title_line1: 'เครือข่ายการชำระดุล', title_line2: 'ระดับโลกยุคใหม่',
+      subtitle: 'สถาปัตยกรรมทางการเงินแบบไฮบริดบนโครงสร้างพื้นฐานบล็อกเชน ให้การเคลื่อนย้ายสินทรัพย์ข้ามพรมแดนลื่นไหลไร้แรงเสียดทาน',
+      cta_start: 'เริ่มต้นใช้งาน', cta_contact: 'ติดต่อฝ่ายธุรกิจ',
+      card_holder: 'ผู้ถือบัตร', card_level: 'BUSINESS ELITE'
     },
-    stats: { coverage: 'ประเทศ', clearance: 'การชำระบัญชี', accounts: 'สกุลเงินท้องถิ่น' },
-    ecosystem: { title: 'สภาพคล่องจากสถาบันการเงินชั้นนำ', description: 'เชื่อมต่อธนาคารชั้นนำระดับโลกและระบบชำระเงินท้องถิ่น' },
-    compliance: { title: 'มาตรฐานระดับโลก การปฏิบัติตามกฎระเบียบ', description: 'ทุกธุรกรรมได้รับการตรวจสอบและคุ้มครองด้วยความปลอดภัยระดับธนาคาร', certified: 'รับรอง', standard: 'มาตรฐาน', security: 'ความปลอดภัย', license: 'ใบอนุญาต' },
+    stats: { coverage: 'ตลาดทั่วโลก', clearance: 'ระยะเวลาชำระดุล', accounts: 'บัญชีสกุลเงินท้องถิ่น' },
+    ecosystem: { title: 'สภาพคล่องสูงจากสถาบันการเงินระดับ Tier-1', description: 'เชื่อมต่อโดยตรงกับธนาคารศูนย์กลางเงินตราต่างประเทศและระบบชำระเงินท้องถิ่น (Local Rails)' },
+    compliance: { title: 'มาตรฐานสากล การปฏิบัติตามกฎระเบียบ', description: 'ตรวจสอบเส้นทางธุรกรรมได้แบบ Bank-grade และโปรโตคอลความปลอดภัยเพื่อความสมบูรณ์ของสินทรัพย์', certified: 'รับรอง', standard: 'มาตรฐาน', security: 'ความปลอดภัย', license: 'ใบอนุญาต' },
     features: {
-      title: 'โซลูชันทางการเงินครบวงจร', description: 'ประสบการณ์การชำระเงินที่ราบรื่นสำหรับบุคคลและองค์กร',
-      card1_title: 'การชำระเงินไร้พรมแดน', card1_desc: 'ทำลายกำแพงทางภูมิศาสตร์ โอนเงินทันทีผ่าน 150+ ประเทศ',
-      card2_title: 'อัตราแลกเปลี่ยนโปร่งใส', card2_desc: 'ระบบหาเรทที่ดีที่สุดทั่วโลก ไม่มีค่าธรรมเนียมแอบแฝง',
-      card3_title: 'ความปลอดภัยสูงสุด', card3_desc: 'กระเป๋าเงิน Multi-sig สำหรับองค์กรและเทคโนโลยี Private Key Sharding'
+      title: 'โครงสร้างพื้นฐานทางการเงินแบบ Full-Stack', description: 'ระบบชำระเงินที่ไร้รอยต่อสำหรับองค์กรยุคใหม่และผู้ใช้งานดิจิทัล',
+      card1_title: 'การชำระดุลไร้พรมแดน', card1_desc: 'ทลายกำแพงทางภูมิศาสตร์ เคลื่อนย้ายเงินทุนทันทีผ่าน 150+ เขตอำนาจรัฐ',
+      card2_title: 'FX ที่โปร่งใส', card2_desc: 'Smart Routing Engine ประมวลผลด้วยอัตราแลกเปลี่ยนระหว่างธนาคาร (Interbank Rates) ไม่มีค่าธรรมเนียมแอบแฝง',
+      card3_title: 'การดูแลสินทรัพย์ระดับสถาบัน', card3_desc: 'กระเป๋าเงิน MPC สำหรับองค์กรพร้อมเทคโนโลยี Private Key Sharding และระบบธรรมาภิบาล'
     },
     lifestyle: {
-      tag: 'ไลฟ์สไตล์', title_line1: 'ทำงานใน Web3', title_line2: 'ใช้ชีวิตในโลกจริง',
-      description: 'ไม่ว่าคุณจะอยู่ที่บาหลีหรืออี้หวู่ PAIPAY ขจัดความยุ่งยากทางเทคนิค ไม่มีการดำเนินการ on-chain ที่ซับซ้อน',
-      check1: 'แลกเปลี่ยน Fiat-Crypto ไร้รอยต่อ', check2: 'ใช้จ่ายผ่าน Visa/Mastercard ทั่วโลก',
-      app_received: 'ได้รับเงิน', app_balance: 'ยอดคงเหลือ', app_activity: 'กิจกรรมล่าสุด'
+      tag: 'ไลฟ์สไตล์ Web3', title_line1: 'ทำงานใน Web3', title_line2: 'ใช้ชีวิตในโลกจริง',
+      description: 'ไม่ว่าคุณจะเป็น Digital Nomad ในบาหลี หรือผู้ค้าในอี้หวู่ PAIPAY ขจัดความซับซ้อนทางเทคนิค ไม่มีความยุ่งยาก On-chain',
+      check1: 'ทางด่วนแลกเปลี่ยน Fiat-Crypto ทันที', check2: 'ใช้จ่ายทั่วโลกผ่าน Virtual Cards',
+      app_received: 'ได้รับชำระเงิน', app_balance: 'มูลค่าสินทรัพย์รวม', app_activity: 'ธุรกรรมล่าสุด'
     },
-    insights: { title: 'ข้อมูลตลาดเชิงลึก', description: 'แนวโน้มกระแสเงิน Crypto และ FX แบบเรียลไทม์', tab_market: 'ข้อมูลตลาด', tab_notice: 'ประกาศระบบ', chart_title: 'มูลค่าตลาดคริปโต' },
-    developers: { title: 'เชื่อมต่อโลกด้วยโค้ดเพียงไม่กี่บรรทัด', description: 'API ที่เรียบง่ายออกแบบมาเพื่อความรวดเร็ว บูรณาการได้ในไม่กี่นาที', cta: 'ดูเอกสาร API' },
+    insights: { title: 'ข้อมูลตลาดเชิงลึก', description: 'วิเคราะห์กระแสเงินทุนและแนวโน้ม FX แบบเรียลไทม์', tab_market: 'ข้อมูลตลาด', tab_notice: 'สถานะระบบ', chart_title: 'มูลค่าตลาดคริปโต' },
+    developers: { title: 'เขียนโปรแกรมการเงินด้วยโค้ด', description: 'API ที่ออกแบบมาเพื่อการชำระดุลความถี่สูง (High-Frequency) ติดตั้งง่าย ขยายสเกลได้ทันที', cta: 'อ่านเอกสาร API' },
     faq: {
-      title: 'คำถามที่พบบ่อย', description: 'คำตอบเกี่ยวกับผลิตภัณฑ์ ความปลอดภัย และการเชื่อมต่อ',
-      q1: 'รองรับประเทศและสกุลเงินใดบ้าง?', a1: 'PAIPAY ครอบคลุม 150+ ประเทศ รองรับ 100+ สกุลเงินท้องถิ่นและคริปโต',
-      q2: 'รับประกันความปลอดภัยของเงินทุนอย่างไร?', a2: 'เราใช้มาตรฐาน ISO 27001 และถือใบอนุญาต PCI-DSS L1',
-      q3: 'ใช้เวลาเชื่อมต่อ API นานเท่าไหร่?', a3: 'โดยปกติ 1-3 วันสำหรับการทดสอบ Sandbox และใช้งานจริง',
-      q4: 'อัตราค่าธรรมเนียมการโอน?', a4: 'อัตราแลกเปลี่ยนโปร่งใส ไม่มีค่าธรรมเนียมแอบแฝง',
-      q5: 'บุคคลธรรมดาสามารถลงทะเบียนได้หรือไม่?', a5: 'ได้ PAIPAY ให้บริการทั้งบุคคลและองค์กร'
+      title: 'คำถามที่พบบ่อย', description: 'ข้อมูลเทคนิค การปฏิบัติตามกฎ และผลิตภัณฑ์',
+      q1: 'รองรับประเทศและสกุลเงินใดบ้าง?', a1: 'PAIPAY ให้บริการใน 150+ ตลาด รองรับ 100+ สกุลเงินท้องถิ่นและสินทรัพย์ดิจิทัลหลัก',
+      q2: 'รับประกันความปลอดภัยของสินทรัพย์อย่างไร?', a2: 'เราใช้โครงสร้างพื้นฐานมาตรฐาน ISO 27001 และเทคโนโลยี MPC สินทรัพย์ถูกแยกบัญชีและตรวจสอบอย่างสมบูรณ์',
+      q3: 'ใช้เวลาเชื่อมต่อ API นานเท่าไหร่?', a3: 'Production Keys สามารถออกได้ภายใน 1-3 วันทำการหลังผ่านการตรวจสอบ',
+      q4: 'ราคา FX กำหนดอย่างไร?', a4: 'เราให้อัตราแลกเปลี่ยนระหว่างธนาคารแบบเรียลไทม์ พร้อมโครงสร้างค่าธรรมเนียมที่โปร่งใส',
+      q5: 'รองรับบัญชีบุคคลธรรมดาหรือไม่?', a5: 'ได้ เรามีทั้งบัญชีบริหารความมั่งคั่งส่วนบุคคลและโซลูชันสำหรับองค์กร'
     },
-    footer: { ready: 'พร้อมยกระดับประสบการณ์ทางการเงินหรือยัง?', rights: 'สงวนลิขสิทธิ์', privacy: 'นโยบาย', terms: 'เงื่อนไข', compliance: 'การปฏิบัติตามกฎ' },
-    notices: { n1: 'ใหม่: กระเป๋าเงิน Multi-sig ระดับองค์กร', n2: 'โซลูชัน B2B: บูรณาการการชำระบัญชีทั่วโลก', n3: 'อัปเกรดความปลอดภัย: เทคโนโลยี Private Key Sharding' }
+    footer: { ready: 'พร้อมยกระดับ Stack ทางการเงินของคุณหรือยัง?', rights: 'สงวนลิขสิทธิ์', privacy: 'นโยบายความเป็นส่วนตัว', terms: 'เงื่อนไขการใช้บริการ', compliance: 'การปฏิบัติตามกฎ' },
+    notices: { n1: 'ใหม่: Enterprise MPC Wallet & ระบบบริหารเงินสด', n2: 'B2B Rails: API การชำระดุลระดับโลก', n3: 'อัปเดตความปลอดภัย: เพิ่มประสิทธิภาพ Private Key Sharding' },
+    download_drawer: {
+      select_title: 'ดาวน์โหลดแอป',
+      select_subtitle: 'เลือกแพลตฟอร์มของคุณ',
+      ios_tip: 'คำแนะนำ: หากไม่พบในร้านค้าท้องถิ่น โปรดเปลี่ยนภูมิภาคเป็น Global (US/SG)',
+      android_rec: 'แนะนำให้ใช้ Google Play เพื่อการอัปเดตอัตโนมัติ',
+      btn_back: 'ย้อนกลับ',
+      btn_confirm: 'ยืนยัน'
+    }
   },
   KH: {
-    nav: { ecosystem: 'ប្រព័ន្ធអេកូឡូស៊ី', features: 'ដំណោះស្រាយ', insights: 'ទីផ្សារ', developers: 'អ្នកអភិវឌ្ឍន៍', faq: 'សំណួរ', download: 'ទាញយក', community: 'សហគមន៍' },
+    nav: { ecosystem: 'ប្រព័ន្ធបណ្តាញ', features: 'ដំណោះស្រាយ', insights: 'ព័ត៌មានទីផ្សារ', developers: 'អ្នកអភិវឌ្ឍន៍', faq: 'ជំនួយ', download: 'ទាញយក', community: 'សហគមន៍' },
     hero: {
-      title_line1: 'បណ្តាញទូទាត់សាច់ប្រាក់', title_line2: 'សកលជំនាន់ក្រោយ',
-      subtitle: 'ស្ថាបត្យកម្មហិរញ្ញវត្ថុផ្អែកលើ Blockchain ។ អនុញ្ញាតឱ្យទ្រព្យសម្បត្តិឌីជីថលហូរយ៉ាងរលូន។',
-      cta_start: 'ចាប់ផ្តើម', cta_contact: 'ទាក់ទង',
+      title_line1: 'បណ្តាញទូទាត់សាច់ប្រាក់', title_line2: 'សកលជំនាន់ថ្មី',
+      subtitle: 'ស្ថាបត្យកម្មហិរញ្ញវត្ថុចម្រុះ (Hybrid) លើហេដ្ឋារចនាសម្ព័ន្ធ Blockchain ។ លំហូរទ្រព្យសកម្មឆ្លងដែនដោយរលូនឥតខ្ចោះ។',
+      cta_start: 'ចាប់ផ្តើម', cta_contact: 'ទាក់ទងផ្នែកលក់',
       card_holder: 'ម្ចាស់ប័ណ្ណ', card_level: 'ធុរកិច្ច'
     },
-    stats: { coverage: 'ប្រទេស', clearance: 'ការទូទាត់', accounts: 'រូបិយប័ណ្ណ' },
-    ecosystem: { title: 'គាំទ្រសាច់ប្រាក់ដោយស្ថាប័នហិរញ្ញវត្ថុធំៗ', description: 'តភ្ជាប់ធនាគារលំដាប់ថ្នាក់ទីមួយអន្តរជាតិ និងបណ្តាញទូទាត់ក្នុងស្រុក។' },
-    compliance: { title: 'ស្តង់ដារសកល ការអនុលោមតាមច្បាប់', description: 'រាល់ប្រតិបត្តិការត្រូវបានការពារដោយសុវត្ថិភាពកម្រិតធនាគារ។', certified: 'បញ្ជាក់', standard: 'ស្តង់ដារ', security: 'សុវត្ថិភាព', license: 'អាជ្ញាប័ណ្ណ' },
+    stats: { coverage: 'ទីផ្សារសកល', clearance: 'រយៈពេលទូទាត់', accounts: 'គណនីរូបិយប័ណ្ណ' },
+    ecosystem: { title: 'សាច់ប្រាក់ងាយស្រួលពីស្ថាប័នហិរញ្ញវត្ថុធំៗ', description: 'ការតភ្ជាប់ដោយផ្ទាល់ជាមួយធនាគារកណ្តាលអន្តរជាតិ និងប្រព័ន្ធទូទាត់ក្នុងស្រុក (Local Rails) ។' },
+    compliance: { title: 'ស្តង់ដារសកល អធិបតេយ្យភាពនៃច្បាប់', description: 'រាល់ប្រតិបត្តិការត្រូវបានការពារដោយប្រព័ន្ធសុវត្ថិភាពកម្រិតធនាគារ និងមានសវនកម្មច្បាស់លាស់។', certified: 'បញ្ជាក់', standard: 'ស្តង់ដារ', security: 'សុវត្ថិភាព', license: 'អាជ្ញាប័ណ្ណ' },
     features: {
-      title: 'ដំណោះស្រាយហិរញ្ញវត្ថុពេញលេញ', description: 'បទពិសោធន៍ទូទាត់ប្រាក់ដោយរលូនសម្រាប់បុគ្គល និងអាជីវកម្ម។',
-      card1_title: 'ការទូទាត់គ្មានព្រំដែន', card1_desc: 'ផ្លាស់ទីមូលនិធិភ្លាមៗឆ្លងកាត់ ១៥០+ ប្រទេស។',
-      card2_title: 'អត្រាប្តូរប្រាក់តម្លាភាព', card2_desc: 'គ្មានថ្លៃសេវាលាក់កំបាំង តាមរយៈម៉ាស៊ីនកំណត់ផ្លូវឆ្លាតវៃ។',
-      card3_title: 'សុវត្ថិភាពអធិបតេយ្យ', card3_desc: 'កាបូប Multi-sig សម្រាប់សហគ្រាស និងបច្ចេកវិទ្យា Private Key Sharding។'
+      title: 'ហេដ្ឋារចនាសម្ព័ន្ធហិរញ្ញវត្ថុពេញលេញ', description: 'ប្រព័ន្ធទូទាត់ប្រាក់ដែលមិនមានការរំខានសម្រាប់សហគ្រាសទំនើប។',
+      card1_title: 'ការទូទាត់គ្មានព្រំដែន', card1_desc: 'លុបបំបាត់របាំងភូមិសាស្ត្រ។ ផ្ទេរមូលនិធិភ្លាមៗឆ្លងកាត់ ១៥០+ ប្រទេស។',
+      card2_title: 'អត្រាប្តូរប្រាក់តម្លាភាព (FX)', card2_desc: 'ម៉ាស៊ីនកំណត់ផ្លូវឆ្លាតវៃផ្តល់អត្រាទីផ្សារអន្តរធនាគារ។ គ្មានកម្រៃជើងសារលាក់កំបាំង។',
+      card3_title: 'ការគ្រប់គ្រងទ្រព្យសកម្មស្ថាប័ន', card3_desc: 'កាបូប MPC សម្រាប់សហគ្រាស និងបច្ចេកវិទ្យា Private Key Sharding ។ ការគ្រប់គ្រងរតនាគារ។'
     },
     lifestyle: {
-      tag: 'របៀបរស់នៅ', title_line1: 'ធ្វើការក្នុង Web3', title_line2: 'រស់នៅក្នុងការពិត',
-      description: 'មិនថាអ្នកនៅ Bali ឬ Yiwu, PAIPAY លុបបំបាត់ការលំបាកផ្នែកបច្ចេកទេស។',
-      check1: 'ប្តូរ Fiat-Crypto ដោយរលូន', check2: 'ចាយវាយជាមួយ Visa/Mastercard',
-      app_received: 'បានទទួលប្រាក់', app_balance: 'សមតុល្យ', app_activity: 'សកម្មភាព'
+      tag: 'របៀបរស់នៅ Web3', title_line1: 'ធ្វើការក្នុង Web3', title_line2: 'រស់នៅក្នុងការពិត',
+      description: 'មិនថាអ្នកនៅ Bali ឬ Yiwu, PAIPAY ធ្វើឱ្យបច្ចេកវិទ្យាក្លាយជារឿងសាមញ្ញ។ គ្មានការរំខាន On-chain ។',
+      check1: 'ច្រកប្តូរ Fiat-Crypto ភ្លាមៗ', check2: 'ការចាយវាយសកលតាមរយៈកាតនិម្មិត',
+      app_received: 'បានទទួលការទូទាត់', app_balance: 'តម្លៃទ្រព្យសរុប', app_activity: 'ប្រតិបត្តិការថ្មីៗ'
     },
-    insights: { title: 'ការយល់ដឹងអំពីទីផ្សារ', description: 'និន្នាការលំហូរ Crypto និង FX តាមពេលវេលាជាក់ស្តែង។', tab_market: 'ទិន្នន័យ', tab_notice: 'ជូនដំណឹង', chart_title: 'មូលធនូបនីយកម្ម Crypto' },
-    developers: { title: 'ភ្ជាប់ពិភពលោកដោយកូដ', description: 'API សាមញ្ញដែលត្រូវបានរចនាឡើងសម្រាប់ល្បឿន។', cta: 'ឯកសារ API' },
+    insights: { title: 'ការយល់ដឹងអំពីទីផ្សារ', description: 'ការវិភាគលំហូរមូលធន និងនិន្នាការ FX ជាក់ស្តែង។', tab_market: 'ទិន្នន័យ', tab_notice: 'ស្ថានភាពប្រព័ន្ធ', chart_title: 'មូលធនូបនីយកម្ម Crypto' },
+    developers: { title: 'បង្កើតប្រព័ន្ធហិរញ្ញវត្ថុដោយកូដ', description: 'API ដែលរចនាឡើងសម្រាប់ការទូទាត់ប្រាក់កម្រិតខ្ពស់។ ភ្ជាប់ក្នុងរយៈពេលប៉ុន្មាននាទី។', cta: 'អានឯកសារ API' },
     faq: {
-      title: 'សំណួរដែលសួរញឹកញាប់', description: 'ចម្លើយអំពីផលិតផល និងសុវត្ថិភាព។',
-      q1: 'តើប្រទេសណាខ្លះដែលគាំទ្រ?', a1: 'PAIPAY គ្របដណ្តប់ ១៥០+ ប្រទេស និងគាំទ្ររូបិយប័ណ្ណ ១០០+ ។',
-      q2: 'តើប្រាក់មានសុវត្ថិភាពយ៉ាងដូចម្តេច?', a2: 'យើងប្រើស្តង់ដារ ISO 27001 និង PCI-DSS L1 ។',
-      q3: 'រយៈពេលនៃការភ្ជាប់ API?', a3: 'ជាធម្មតា ១-៣ ថ្ងៃសម្រាប់ការធ្វើតេស្ត។',
-      q4: 'តើអត្រាថ្លៃសេវាប៉ុន្មាន?', a4: 'អត្រាផ្លាស់ប្តូរតម្លាភាព គ្មានការសម្ងាត់។',
-      q5: 'តើគាំទ្របុគ្គលដែរឬទេ?', a5: 'បាទ PAIPAY សម្រាប់ទាំងបុគ្គល និងអាជីវកម្ម។'
+      title: 'សំណួរដែលសួរញឹកញាប់', description: 'ជំនួយបច្ចេកទេស និងផលិតផល។',
+      q1: 'តើគាំទ្រប្រទេសនិងរូបិយប័ណ្ណណាខ្លះ?', a1: 'PAIPAY ប្រតិបត្តិការក្នុង ១៥០+ ទីផ្សារ គាំទ្ររូបិយប័ណ្ណ ១០០+ និងទ្រព្យសកម្មឌីជីថល។',
+      q2: 'តើសុវត្ថិភាពទ្រព្យសកម្មត្រូវបានធានាយ៉ាងដូចម្តេច?', a2: 'យើងប្រើប្រាស់ហេដ្ឋារចនាសម្ព័ន្ធស្តង់ដារ ISO 27001 និងបច្ចេកវិទ្យា MPC ។',
+      q3: 'តើការភ្ជាប់ API ត្រូវការពេលប៉ុន្មាន?', a3: 'កូនសោ Production អាចចេញក្នុងរយៈពេល ១-៣ ថ្ងៃធ្វើការ។',
+      q4: 'តើអត្រា FX ត្រូវបានកំណត់យ៉ាងដូចម្តេច?', a4: 'យើងផ្តល់អត្រាអន្តរធនាគារជាក់ស្តែងជាមួយនឹងរចនាសម្ព័ន្ធថ្លៃសេវាច្បាស់លាស់។',
+      q5: 'តើអ្នកគាំទ្រគណនីបុគ្គលទេ?', a5: 'បាទ យើងផ្តល់ជូនទាំងគណនីផ្ទាល់ខ្លួន និងដំណោះស្រាយរតនាគារសហគ្រាស។'
     },
-    footer: { ready: 'ត្រៀមខ្លួនដើម្បីបង្កើនបទពិសោធន៍ហិរញ្ញវត្ថុរបស់អ្នកឬនៅ?', rights: 'រក្សាសិទ្ធិគ្រប់យ៉ាង។', privacy: 'ឯកជនភាព', terms: 'លក្ខខណ្ឌ', compliance: 'ការអនុលោម' },
-    notices: { n1: 'ថ្មី៖ កាបូប Multi-sig សហគ្រាស', n2: 'ដំណោះស្រាយ B2B៖ ការទូទាត់សកល', n3: 'សុវត្ថិភាព៖ បច្ចេកវិទ្យា Private Key Sharding' }
+    footer: { ready: 'ត្រៀមខ្លួនដើម្បីបង្កើនបទពិសោធន៍ហិរញ្ញវត្ថុរបស់អ្នកឬនៅ?', rights: 'រក្សាសិទ្ធិគ្រប់យ៉ាង។', privacy: 'គោលការណ៍​ឯកជនភាព', terms: 'លក្ខខណ្ឌសេវាកម្ម', compliance: 'ការអនុលោមតាមច្បាប់' },
+    notices: { n1: 'ថ្មី៖ កាបូប MPC សហគ្រាស & ប្រព័ន្ធរតនាគារ', n2: 'B2B Rails៖ API ទូទាត់សកលរួមបញ្ចូលគ្នា', n3: 'បច្ចុប្បន្នភាពសុវត្ថិភាព៖ ការពង្រឹង Private Key Sharding' },
+    download_drawer: {
+      select_title: 'ទាញយកកម្មវិធី',
+      select_subtitle: 'ជ្រើសរើសវេទិការបស់អ្នក។',
+      ios_tip: 'ជំនួយ៖ ប្រសិនបើមិនមាននៅក្នុងហាងក្នុងស្រុក សូមប្តូរទៅតំបន់ Global (US/SG) ។',
+      android_rec: 'ណែនាំឱ្យប្រើ Google Play សម្រាប់ការធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ',
+      btn_back: 'ត្រឡប់ក្រោយ',
+      btn_confirm: 'បញ្ជាក់'
+    }
   }
 };
 
