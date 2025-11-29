@@ -125,11 +125,10 @@ const Hero: React.FC = () => {
         <div className="w-full overflow-hidden flex items-center">
           <div className="w-full overflow-hidden whitespace-nowrap mask-linear-fade">
              <div className="inline-block animate-ticker">
-                {/* Changed span to div to avoid nesting issues */}
-                <div className="ticker-segment inline-flex">
+                <span className="ticker-segment">
                    <TickerContent />
                    <TickerContent /> 
-                </div>
+                </span>
              </div>
           </div>
         </div>

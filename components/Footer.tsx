@@ -50,15 +50,15 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
               {/* Social Icons Row - Super Clean */}
               <div className="flex items-center gap-4">
-                 <button type="button" onClick={(e) => e.preventDefault()} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-black transition-all duration-300">
+                 <a href="#!" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-black transition-all duration-300">
                     <i className="ri-twitter-x-line text-lg"></i>
-                 </button>
-                 <button type="button" onClick={(e) => e.preventDefault()} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#1877F2] transition-all duration-300">
+                 </a>
+                 <a href="#!" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#1877F2] transition-all duration-300">
                     <i className="ri-facebook-fill text-lg"></i>
-                 </button>
-                 <button type="button" onClick={(e) => e.preventDefault()} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#24A1DE] transition-all duration-300">
+                 </a>
+                 <a href="#!" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#24A1DE] transition-all duration-300">
                     <i className="ri-telegram-fill text-lg"></i>
-                 </button>
+                 </a>
               </div>
             </div>
           </div>
@@ -67,9 +67,9 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div className="border-t border-gray-100 pt-8 flex flex-col-reverse md:flex-row justify-between items-center gap-6 text-xs font-medium">
             <p className="text-gray-400 text-center md:text-left">&copy; 2025 PAIPAY Financial Technology. {t.footer.rights}</p>
             <div className="flex flex-wrap justify-center gap-6 text-gray-400">
-              <button type="button" onClick={(e) => e.preventDefault()} className="hover:text-gray-900 transition-colors">{t.footer.privacy}</button>
-              <button type="button" onClick={(e) => e.preventDefault()} className="hover:text-gray-900 transition-colors">{t.footer.terms}</button>
-              <button type="button" onClick={(e) => e.preventDefault()} className="hover:text-gray-900 transition-colors">{t.footer.compliance}</button>
+              <a href="#!" className="hover:text-gray-900 transition-colors">{t.footer.privacy}</a>
+              <a href="#!" className="hover:text-gray-900 transition-colors">{t.footer.terms}</a>
+              <a href="#!" className="hover:text-gray-900 transition-colors">{t.footer.compliance}</a>
               <a href="/admin" onClick={handleAdminClick} className="hover:text-blue-600 transition-colors">Admin Access</a>
             </div>
           </div>

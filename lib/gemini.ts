@@ -1,6 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Strictly use process.env.API_KEY as per coding guidelines
+// Use process.env.API_KEY as per guidelines.
+// In Vite with the 'define' plugin, 'process.env.API_KEY' is replaced by the actual string value at build time.
+// We must access it directly so the replacement matches.
 const apiKey = process.env.API_KEY;
 
 // Initialize AI client only if key is present
@@ -25,12 +27,11 @@ export const generateArticleContent = async (
   category: string
 ): Promise<GeneratedArticle | null> => {
   if (!ai) {
-    console.error("Gemini API Key is missing. Check process.env.API_KEY.");
-    throw new Error("AI Service not initialized: Missing API Key.");
+    console.error("Gemini API Key is missing.");
+    throw new Error("AI 服务未初始化：缺少 API Key。");
   }
 
-  // Using gemini-2.5-flash as per model selection guidelines for basic text tasks
-  const modelId = "gemini-2.5-flash"; 
+  const modelId = "gemini-2.5-flash"; // Using Flash for speed and efficiency in text tasks
 
   const systemInstruction = `You are an expert Fintech Editor for PAIPAY, a global clearing network. 
   Your Tone: ${tone}.
@@ -38,7 +39,7 @@ export const generateArticleContent = async (
   
   Requirements:
   1. Output must be valid JSON.
-  2. "content" must be rich HTML (use <h2>, <h3>, <h3>, <p>, <ul>, <li>). Do not use Markdown in the HTML field.
+  2. "content" must be rich HTML (use <h2>, <h3>, <p>, <ul>, <li>). Do not use Markdown in the HTML field.
   3. "social_drafts" should provide platform-specific copy (Twitter: short + hashtags, LinkedIn: professional, Telegram: bullet points).
   4. Language: The output must be in ${language}.
   5. Category Context: This is a ${category} article.

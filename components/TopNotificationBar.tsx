@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from './LanguageContext';
 
 interface TopNotificationBarProps {
@@ -10,11 +10,11 @@ const TopNotificationBar: React.FC<TopNotificationBarProps> = ({ onNavigate }) =
   const [isExiting, setIsExiting] = useState(false);
   const { t } = useLanguage();
 
-  const notices = useMemo(() => [
+  const notices = [
     { icon: 'ri-vip-crown-fill', color: 'text-yellow-400', text: t.notices.n1 },
     { icon: 'ri-briefcase-4-fill', color: 'text-cyan-400', text: t.notices.n2 },
     { icon: 'ri-shield-check-fill', color: 'text-green-400', text: t.notices.n3 }
-  ], [t]);
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -26,7 +26,7 @@ const TopNotificationBar: React.FC<TopNotificationBarProps> = ({ onNavigate }) =
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [notices]);
+  }, [notices.length]);
 
   const currentNotice = notices[currentIndex];
 

@@ -73,9 +73,9 @@ const DownloadDrawer: React.FC<DownloadDrawerProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="flex gap-3">
               <button onClick={() => setStep('select')} className="flex-1 py-3.5 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm">{t.download_drawer.btn_back}</button>
-              <button type="button" onClick={(e) => e.preventDefault()} className="flex-1 flex items-center justify-center py-3.5 rounded-xl bg-black text-white font-bold text-sm shadow-lg shadow-gray-200 active:scale-95 transition-transform">
+              <a href="#" className="flex-1 flex items-center justify-center py-3.5 rounded-xl bg-black text-white font-bold text-sm shadow-lg shadow-gray-200 active:scale-95 transition-transform">
                 {t.download_drawer.btn_confirm}
-              </button>
+              </a>
             </div>
           </div>
         )}
@@ -91,7 +91,7 @@ const DownloadDrawer: React.FC<DownloadDrawerProps> = ({ isOpen, onClose }) => {
             </div>
             
             <div className="space-y-3">
-               <button type="button" onClick={(e) => e.preventDefault()} className="w-full flex items-center justify-between px-5 py-4 bg-white border border-gray-100 rounded-xl shadow-sm active:scale-[0.98] transition-all">
+               <a href="#" className="w-full flex items-center justify-between px-5 py-4 bg-white border border-gray-100 rounded-xl shadow-sm active:scale-[0.98] transition-all">
                   <div className="flex items-center gap-3">
                     <i className="ri-google-play-fill text-xl text-gray-600"></i>
                     <div className="text-left">
@@ -100,9 +100,9 @@ const DownloadDrawer: React.FC<DownloadDrawerProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                   <i className="ri-arrow-right-s-line text-gray-300"></i>
-               </button>
+               </a>
 
-               <button type="button" onClick={(e) => e.preventDefault()} className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 border border-transparent rounded-xl active:scale-[0.98] transition-all">
+               <a href="#" className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 border border-transparent rounded-xl active:scale-[0.98] transition-all">
                   <div className="flex items-center gap-3">
                     <i className="ri-download-cloud-2-line text-xl text-gray-600"></i>
                     <div className="text-left">
@@ -111,7 +111,7 @@ const DownloadDrawer: React.FC<DownloadDrawerProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                   <i className="ri-arrow-right-s-line text-gray-300"></i>
-               </button>
+               </a>
             </div>
             
             <button onClick={() => setStep('select')} className="w-full py-3 text-gray-400 text-xs font-medium">{t.download_drawer.btn_back}</button>
