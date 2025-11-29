@@ -1,15 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Use type casting to access env vars safely without interface conflicts
-const getEnvVar = (key: string, fallback: string) => {
-  try {
-    return (import.meta as any).env[key] || fallback;
-  } catch (e) {
-    return fallback;
-  }
-};
-
-const apiKey = getEnvVar('VITE_GOOGLE_API_KEY', '');
+// Cast import.meta to any to avoid type errors when vite types are missing in environment
+const apiKey = (import.meta as any).env.VITE_GOOGLE_API_KEY;
 
 // Initialize AI client only if key is present
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
@@ -34,7 +26,7 @@ export const generateArticleContent = async (
 ): Promise<GeneratedArticle | null> => {
   if (!ai) {
     console.error("Gemini API Key is missing. Check VITE_GOOGLE_API_KEY in .env or Netlify settings.");
-    throw new Error("AI 服务未初始化：缺少 API Key。");
+    throw new Error("AI Service not initialized: Missing API Key.");
   }
 
   const modelId = "gemini-2.5-flash"; // Using Flash for speed and efficiency in text tasks

@@ -1,10 +1,21 @@
 import { supabase } from './supabaseClient';
-import { Article } from '../components/LanguageContext';
+import { Article, MarketCategory, NoticeCategory } from '../components/LanguageContext';
+
+interface SupabaseArticleRow {
+  id: number;
+  category: string;
+  tag: string;
+  title: string;
+  created_at: string;
+  meta_desc: string | null;
+  content: string | null;
+  stream: 'market' | 'notice';
+}
 
 // Helper to convert Supabase row to App Article type
-const mapRowToArticle = (row: any): Article => ({
+const mapRowToArticle = (row: SupabaseArticleRow): Article => ({
   id: row.id.toString(), // Convert number ID to string
-  category: row.category,
+  category: row.category as MarketCategory | NoticeCategory,
   tag: row.tag || 'UPDATE',
   title: row.title,
   date: new Date(row.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -25,7 +36,9 @@ export const fetchArticles = async (stream: 'market' | 'notice'): Promise<Articl
       return [];
     }
 
-    return (data || []).map(mapRowToArticle);
+    // Cast data safely knowing the schema structure or use generic if setup in supabaseClient
+    const rows = data as unknown as SupabaseArticleRow[];
+    return (rows || []).map(mapRowToArticle);
   } catch (err) {
     console.error("Unexpected error fetching articles:", err);
     return [];
@@ -46,7 +59,7 @@ export const fetchArticleById = async (id: string): Promise<Article | null> => {
 
     if (error) return null;
 
-    return mapRowToArticle(data);
+    return mapRowToArticle(data as unknown as SupabaseArticleRow);
   } catch (err) {
     return null;
   }
