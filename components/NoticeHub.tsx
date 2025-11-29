@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useLanguage, NoticeCategory } from './LanguageContext';
+import React, { useState, useEffect } from 'react';
+import { useLanguage, NoticeCategory, Article } from './LanguageContext';
 import { PageView } from '../App';
+import { fetchArticles } from '../lib/articleService';
 
 interface NoticeHubProps {
   onNavigate: (view: PageView, articleId?: string, articleType?: 'market' | 'notice') => void;
@@ -9,10 +10,23 @@ interface NoticeHubProps {
 const NoticeHub: React.FC<NoticeHubProps> = ({ onNavigate }) => {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<NoticeCategory>('all');
+  const [dbArticles, setDbArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchArticles('notice');
+      setDbArticles(data);
+      setIsLoading(false);
+    };
+    loadData();
+  }, []);
+
+  const allArticles = [...dbArticles, ...t.insights.notice_items];
 
   const filteredItems = activeCategory === 'all' 
-    ? t.insights.notice_items 
-    : t.insights.notice_items.filter(item => item.category === activeCategory);
+    ? allArticles 
+    : allArticles.filter(item => item.category === activeCategory);
 
   const categories: NoticeCategory[] = ['all', 'system', 'maintenance', 'feature'];
 
@@ -69,7 +83,7 @@ const NoticeHub: React.FC<NoticeHubProps> = ({ onNavigate }) => {
                                 : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-800'
                         }`}
                       >
-                          {t.insights.categories.notice[cat]}
+                          {t.insights.categories.notice[cat] || cat}
                       </button>
                   ))}
               </div>
@@ -78,7 +92,11 @@ const NoticeHub: React.FC<NoticeHubProps> = ({ onNavigate }) => {
 
       {/* Timeline Content */}
       <div className="max-w-4xl mx-auto px-6 py-16">
-         {filteredItems.length === 0 ? (
+         {isLoading ? (
+             <div className="flex justify-center py-20">
+                <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+             </div>
+         ) : filteredItems.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
                 <p>No notices found in this category.</p>
             </div>
@@ -95,7 +113,7 @@ const NoticeHub: React.FC<NoticeHubProps> = ({ onNavigate }) => {
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
                                 <div className="flex gap-2">
                                     <span className="inline-block px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase tracking-wide">
-                                        {t.insights.categories.notice[item.category as NoticeCategory]}
+                                        {t.insights.categories.notice[item.category as NoticeCategory] || item.category}
                                     </span>
                                     {item.tag && (
                                         <span className={`inline-block px-2.5 py-1 text-[10px] font-bold rounded uppercase tracking-wide border ${item.category === 'maintenance' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>

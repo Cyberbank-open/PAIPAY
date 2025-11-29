@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLanguage } from './LanguageContext';
+import { useLanguage, Article } from './LanguageContext';
 import { PageView } from '../App';
+import { fetchArticleById } from '../lib/articleService';
 
 interface ArticleDetailProps {
   id: string;
@@ -14,13 +15,43 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ id, type, onNavigate }) =
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const items = type === 'market' ? t.insights.market_items : t.insights.notice_items;
-  const article = items.find(i => i.id === id);
+  const [article, setArticle] = useState<Article | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Find article from static data or fetch from DB
   useEffect(() => {
+    const loadArticle = async () => {
+      setIsLoading(true);
+      
+      // 1. Check static data first
+      const items = type === 'market' ? t.insights.market_items : t.insights.notice_items;
+      const staticArticle = items.find(i => i.id === id);
+      
+      if (staticArticle) {
+        setArticle(staticArticle);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Fetch from DB if not found statically
+      const dbArticle = await fetchArticleById(id);
+      if (dbArticle) {
+        setArticle(dbArticle);
+      }
+      setIsLoading(false);
+    };
+
+    loadArticle();
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, type, t]);
+
+  if (isLoading) {
+      return (
+          <div className="min-h-screen bg-white flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+          </div>
+      );
+  }
 
   if (!article) return <div className="py-32 text-center text-gray-500">Article not found</div>;
 
@@ -30,7 +61,6 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ id, type, onNavigate }) =
   // --- Handlers ---
 
   const handleShare = () => {
-    // Simulate copying link
     navigator.clipboard.writeText(window.location.href);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
@@ -41,7 +71,6 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ id, type, onNavigate }) =
       const file = e.target.files[0];
       setIsUploading(true);
       
-      // Simulate network upload delay for "System" feel
       setTimeout(() => {
           const url = URL.createObjectURL(file);
           setPreviewUrl(url);
@@ -89,14 +118,11 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ id, type, onNavigate }) =
 
           <article className="prose prose-blue prose-lg text-gray-600 leading-loose">
              <p className="font-medium text-gray-800 text-lg mb-8">{article.summary}</p>
-             <div className="whitespace-pre-line">
-                {article.content}
-             </div>
-             
-             {/* Simulated Lorem Ipsum content for length */}
-             <p className="mt-8">
-                In addition to the primary developments, we are observing significant shifts in user behavior across the APAC region. Institutional demand for real-time settlement is driving adoption of our Layer-2 solutions.
-             </p>
+             {/* Render HTML content safely since it comes from our AI/Admin */}
+             <div 
+                className="whitespace-pre-line"
+                dangerouslySetInnerHTML={{ __html: article.content }}
+             />
           </article>
 
           {/* --- INTERACTION DOCK (Red Dot Style) --- */}

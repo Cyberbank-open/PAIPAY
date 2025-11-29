@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useLanguage, MarketCategory } from './LanguageContext';
+import React, { useState, useEffect } from 'react';
+import { useLanguage, MarketCategory, Article } from './LanguageContext';
 import { PageView } from '../App';
+import { fetchArticles } from '../lib/articleService';
 
 interface MarketHubProps {
   onNavigate: (view: PageView, articleId?: string, articleType?: 'market' | 'notice') => void;
@@ -9,10 +10,26 @@ interface MarketHubProps {
 const MarketHub: React.FC<MarketHubProps> = ({ onNavigate }) => {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<MarketCategory>('all');
+  const [dbArticles, setDbArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch articles on mount
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchArticles('market');
+      setDbArticles(data);
+      setIsLoading(false);
+    };
+    loadData();
+  }, []);
+
+  // Combine DB articles with static content
+  // DB articles come first
+  const allArticles = [...dbArticles, ...t.insights.market_items];
 
   const filteredItems = activeCategory === 'all' 
-    ? t.insights.market_items 
-    : t.insights.market_items.filter(item => item.category === activeCategory);
+    ? allArticles 
+    : allArticles.filter(item => item.category === activeCategory);
 
   const categories: MarketCategory[] = ['all', 'analysis', 'trend', 'report'];
 
@@ -68,7 +85,8 @@ const MarketHub: React.FC<MarketHubProps> = ({ onNavigate }) => {
                                 : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-800'
                         }`}
                       >
-                          {t.insights.categories.market[cat]}
+                          {/* Try to translate category, fallback to raw string for dynamic categories */}
+                          {t.insights.categories.market[cat] || cat}
                       </button>
                   ))}
               </div>
@@ -77,7 +95,11 @@ const MarketHub: React.FC<MarketHubProps> = ({ onNavigate }) => {
 
       {/* Content Grid */}
       <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
-        {filteredItems.length === 0 ? (
+        {isLoading ? (
+           <div className="flex justify-center py-20">
+               <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+           </div>
+        ) : filteredItems.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
                 <p>No articles found in this category.</p>
             </div>
@@ -96,7 +118,8 @@ const MarketHub: React.FC<MarketHubProps> = ({ onNavigate }) => {
                     {/* Category Badge */}
                     <div className="absolute top-4 left-4">
                         <span className="px-3 py-1 bg-white/90 backdrop-blur text-[10px] font-bold text-gray-900 rounded-full border border-gray-100 shadow-sm uppercase tracking-wide">
-                            {t.insights.categories.market[item.category as MarketCategory]}
+                             {/* Try to translate category, fallback to raw string for dynamic categories */}
+                            {t.insights.categories.market[item.category as MarketCategory] || item.category}
                         </span>
                     </div>
 
