@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Cast import.meta to any to avoid type errors when vite types are missing in environment
-const apiKey = (import.meta as any).env.VITE_GOOGLE_API_KEY;
+// Strictly use process.env.API_KEY as per coding guidelines
+const apiKey = process.env.API_KEY;
 
 // Initialize AI client only if key is present
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
@@ -25,11 +25,12 @@ export const generateArticleContent = async (
   category: string
 ): Promise<GeneratedArticle | null> => {
   if (!ai) {
-    console.error("Gemini API Key is missing. Check VITE_GOOGLE_API_KEY in .env or Netlify settings.");
+    console.error("Gemini API Key is missing. Check process.env.API_KEY.");
     throw new Error("AI Service not initialized: Missing API Key.");
   }
 
-  const modelId = "gemini-2.5-flash"; // Using Flash for speed and efficiency in text tasks
+  // Using gemini-2.5-flash as per model selection guidelines for basic text tasks
+  const modelId = "gemini-2.5-flash"; 
 
   const systemInstruction = `You are an expert Fintech Editor for PAIPAY, a global clearing network. 
   Your Tone: ${tone}.

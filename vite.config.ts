@@ -17,6 +17,10 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist', // Netlify output directory
+    },
+    // Fix for "process is not defined" error in browser
+    define: {
+      'process.env': env
     }
   }
 })
