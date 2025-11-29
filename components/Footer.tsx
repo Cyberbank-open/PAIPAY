@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import { useLanguage } from './LanguageContext';
 import DownloadDrawer from './DownloadDrawer';
+import { PageView } from '../App';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+    onNavigate?: (view: PageView) => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const { t } = useLanguage();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const handleAdminClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (onNavigate) {
+          onNavigate('admin_login');
+      }
+  };
 
   return (
     <>
@@ -58,6 +70,7 @@ const Footer: React.FC = () => {
               <a href="#!" className="hover:text-gray-900 transition-colors">{t.footer.privacy}</a>
               <a href="#!" className="hover:text-gray-900 transition-colors">{t.footer.terms}</a>
               <a href="#!" className="hover:text-gray-900 transition-colors">{t.footer.compliance}</a>
+              <a href="/admin" onClick={handleAdminClick} className="hover:text-blue-600 transition-colors">Admin Access</a>
             </div>
           </div>
         </div>

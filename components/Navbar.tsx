@@ -61,6 +61,13 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
       }
   }
 
+  const navigateToLogin = () => {
+    if (onNavigateHome) {
+      onNavigateHome('admin_login');
+    }
+    closeMenu();
+  };
+
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     
@@ -176,8 +183,14 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
               </div>
             </div>
 
-            {/* Desktop CTA */}
-            <div className="hidden md:block">
+            {/* Desktop CTA & Login */}
+            <div className="hidden md:flex items-center gap-4">
+              <button 
+                onClick={navigateToLogin}
+                className="text-gray-500 hover:text-gray-900 font-bold text-sm px-3 py-2 transition-colors"
+              >
+                Login
+              </button>
               <button 
                 onClick={openDownload}
                 className="bg-gray-900 text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-blue-600 hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
@@ -246,7 +259,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
               </a>
             ))}
             
-            {/* Mobile Notification Link - CRITICAL FIX: Changed from <a> to <button> to prevent hash navigation crash */}
+            {/* Mobile Notification Link */}
             <button 
                 onClick={(e) => {
                     e.preventDefault();
@@ -282,14 +295,23 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
                 </a>
              </div>
 
-            {/* Primary CTA */}
-            <button 
-              onClick={openDownload}
-              className="w-full bg-gray-900 text-white h-12 rounded-xl text-[15px] font-bold shadow-lg shadow-gray-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5"
-            >
-               <i className="ri-download-cloud-2-line text-xl mb-0.5"></i>
-               <span>{t.nav.download}</span>
-            </button>
+            <div className="flex gap-3">
+                 <button 
+                  onClick={navigateToLogin}
+                  className="flex-1 bg-white border border-gray-200 text-gray-800 h-12 rounded-xl text-[15px] font-bold shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                >
+                   <i className="ri-shield-user-line text-lg"></i>
+                   <span>Login</span>
+                </button>
+
+                <button 
+                  onClick={openDownload}
+                  className="flex-[2] bg-gray-900 text-white h-12 rounded-xl text-[15px] font-bold shadow-lg shadow-gray-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5"
+                >
+                   <i className="ri-download-cloud-2-line text-xl mb-0.5"></i>
+                   <span>{t.nav.download}</span>
+                </button>
+            </div>
           </div>
         </div>
       </div>

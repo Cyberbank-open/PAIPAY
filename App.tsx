@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LanguageProvider } from './components/LanguageContext';
 import TopNotificationBar from './components/TopNotificationBar';
 import Navbar from './components/Navbar';
@@ -15,8 +15,10 @@ import Footer from './components/Footer';
 import MarketHub from './components/MarketHub';
 import NoticeHub from './components/NoticeHub';
 import ArticleDetail from './components/ArticleDetail';
+import AdminLogin from './components/AdminLogin';
+import AdminDashboard from './components/AdminDashboard';
 
-export type PageView = 'home' | 'market_hub' | 'notice_hub' | 'article_detail';
+export type PageView = 'home' | 'market_hub' | 'notice_hub' | 'article_detail' | 'admin_login' | 'admin_dashboard';
 
 export interface AppState {
   view: PageView;
@@ -27,13 +29,36 @@ export interface AppState {
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>({ view: 'home' });
 
+  // Simple URL routing for Admin
+  useEffect(() => {
+    if (window.location.pathname === '/admin') {
+        setAppState({ view: 'admin_login' });
+    }
+  }, []);
+
   const navigate = (view: PageView, articleId?: string, articleType?: 'market' | 'notice') => {
-    // CRITICAL FIX: Use 'auto' instead of 'smooth' for full page transitions.
-    // 'smooth' scrolling on DOM replacement causes the browser to get stuck calculating positions of elements that no longer exist.
     window.scrollTo({ top: 0, behavior: 'auto' });
     setAppState({ view, articleId, articleType });
   };
 
+  const handleAdminLogin = (role: string) => {
+      navigate('admin_dashboard');
+  };
+
+  const handleAdminLogout = () => {
+      navigate('home');
+  };
+
+  // If in Admin Mode, render full screen admin layout
+  if (appState.view === 'admin_login') {
+      return <AdminLogin onLogin={handleAdminLogin} />;
+  }
+
+  if (appState.view === 'admin_dashboard') {
+      return <AdminDashboard onLogout={handleAdminLogout} />;
+  }
+
+  // Standard User Layout
   return (
     <LanguageProvider>
       <div className="antialiased selection:bg-blue-100 selection:text-blue-900 pt-10">
@@ -73,7 +98,7 @@ const App: React.FC = () => {
             />
           )}
           
-          <Footer />
+          <Footer onNavigate={navigate} />
         </main>
       </div>
     </LanguageProvider>
