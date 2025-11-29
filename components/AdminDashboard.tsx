@@ -278,7 +278,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   
   // --- Report State ---
   const [reportGenerating, setReportGenerating] = useState(false);
-  const [reportPeriod] = useState<'weekly' | 'monthly'>('weekly');
+  const reportPeriod = 'weekly'; // Converted from useState to constant since it is never updated
 
   const t = {
     EN: {
@@ -891,12 +891,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                 <button 
                                     onClick={() => setPreviewMode('social')}
                                     className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${previewMode === 'social' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
+                                    type="button"
                                 >
                                     {text.studio.tab_social}
                                 </button>
                                 <button 
                                     onClick={() => setPreviewMode('seo')}
                                     className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${previewMode === 'seo' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
+                                    type="button"
                                 >
                                     {text.studio.tab_seo}
                                 </button>
