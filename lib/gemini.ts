@@ -27,8 +27,8 @@ export const generateArticleContent = async (
   category: string
 ): Promise<GeneratedArticle | null> => {
   if (!ai) {
-    console.error("Gemini API Key is missing.");
-    throw new Error("AI 服务未初始化：缺少 API Key。");
+    console.error("Gemini API Key is missing. Ensure process.env.API_KEY is set.");
+    throw new Error("AI 服务未初始化：缺少 API Key (process.env.API_KEY)。");
   }
 
   const modelId = "gemini-2.5-flash"; // Using Flash for speed and efficiency in text tasks

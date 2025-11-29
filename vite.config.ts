@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
     // This fixes the issue where files in 'lib/' are not transpiled by Rollup
     esbuild: {
       loader: 'tsx',
-      include: ['**/*.ts', '**/*.tsx'],
+      include: /.*\.[tj]sx?$/,
       exclude: [],
     },
     build: {
