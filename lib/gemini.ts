@@ -1,9 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Use process.env.API_KEY as per guidelines.
-// In Vite with the 'define' plugin, 'process.env.API_KEY' is replaced by the actual string value at build time.
-// We must access it directly so the replacement matches.
-const apiKey = process.env.API_KEY;
+// Added check to ensure process exists before access to prevent browser crashes if polyfill is missing.
+const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
 
 // Initialize AI client only if key is present
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
