@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage, MarketCategory, Article } from './LanguageContext';
 import { PageView } from '../App';
-import { fetchArticles } from '../lib/articleService';
+import { fetchArticles } from '../utils/articleService';
 
 interface MarketHubProps {
   onNavigate: (view: PageView, articleId?: string, articleType?: 'market' | 'notice') => void;

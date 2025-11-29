@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLanguage, Article } from './LanguageContext';
 import { PageView } from '../App';
-import { fetchArticleById } from '../lib/articleService';
+import { fetchArticleById } from '../utils/articleService';
 
 interface ArticleDetailProps {
   id: string;

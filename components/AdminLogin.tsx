@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { supabase, isSupabaseConfigured } from '../utils/supabaseClient';
 
 interface AdminLoginProps {
   onLogin: (role: 'admin' | 'editor') => void;

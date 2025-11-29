@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { generateArticleContent, GeneratedArticle } from '../lib/gemini';
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { generateArticleContent, GeneratedArticle } from '../utils/gemini';
+import { supabase, isSupabaseConfigured } from '../utils/supabaseClient';
 
 interface AdminDashboardProps {
   onLogout: () => void;
