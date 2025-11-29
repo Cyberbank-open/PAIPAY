@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Use process.env.API_KEY as per guidelines.
-// Access it directly so Vite's define plugin can replace the whole expression with the string literal.
+// Access the key directly so Vite's `define` plugin can perform the string replacement.
+// In the built code, this becomes: const apiKey = atob("...");
 const apiKey = process.env.API_KEY;
 
 // Initialize AI client only if key is present
@@ -26,7 +26,6 @@ export const generateArticleContent = async (
   category: string
 ) => {
   if (!ai) {
-    // Avoid using the literal 'process.env.API_KEY' in the string to prevent Vite from replacing it and breaking syntax
     console.error("Gemini API Key is missing. Please check your environment variables.");
     throw new Error("AI Service not initialized: Missing API Key.");
   }
