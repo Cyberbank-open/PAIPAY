@@ -1,8 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Use process.env.API_KEY as per guidelines.
-// Added check to ensure process exists before access to prevent browser crashes if polyfill is missing.
-const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
+// Access it directly so Vite's define plugin can replace the whole expression with the string literal.
+const apiKey = process.env.API_KEY;
 
 // Initialize AI client only if key is present
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
@@ -24,10 +24,11 @@ export const generateArticleContent = async (
   tone: string,
   language: string,
   category: string
-): Promise<GeneratedArticle | null> => {
+) => {
   if (!ai) {
-    console.error("Gemini API Key is missing. Ensure process.env.API_KEY is set.");
-    throw new Error("AI 服务未初始化：缺少 API Key (process.env.API_KEY)。");
+    // Avoid using the literal 'process.env.API_KEY' in the string to prevent Vite from replacing it and breaking syntax
+    console.error("Gemini API Key is missing. Please check your environment variables.");
+    throw new Error("AI Service not initialized: Missing API Key.");
   }
 
   const modelId = "gemini-2.5-flash"; // Using Flash for speed and efficiency in text tasks
