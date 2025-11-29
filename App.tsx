@@ -41,7 +41,7 @@ const App: React.FC = () => {
     setAppState({ view, articleId, articleType });
   };
 
-  const handleAdminLogin = (role: string) => {
+  const handleAdminLogin = (_role: string) => {
       navigate('admin_dashboard');
   };
 

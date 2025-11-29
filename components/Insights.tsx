@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useLanguage } from './LanguageContext';
 import { PageView } from '../App';
@@ -24,7 +24,19 @@ interface InsightsProps {
 
 const Insights: React.FC<InsightsProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'market' | 'notice'>('market');
+  const [chartReady, setChartReady] = useState(false);
   const { t } = useLanguage();
+
+  // Fix Recharts warning by ensuring DOM is ready before rendering chart
+  useEffect(() => {
+    setChartReady(false);
+    if (activeTab === 'market') {
+      const timer = requestAnimationFrame(() => {
+        setChartReady(true);
+      });
+      return () => cancelAnimationFrame(timer);
+    }
+  }, [activeTab]);
 
   return (
     <section id="insights" className="py-20 md:py-32 bg-white">
@@ -58,7 +70,7 @@ const Insights: React.FC<InsightsProps> = ({ onNavigate }) => {
         {activeTab === 'market' && (
           <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Chart Column */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6">
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6 min-w-0">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h4 className="font-bold text-gray-800 text-sm md:text-base">{t.insights.chart_title}</h4>
@@ -71,31 +83,33 @@ const Insights: React.FC<InsightsProps> = ({ onNavigate }) => {
               </div>
               
               <div className="w-full h-[250px] md:h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#4A54F1" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#4A54F1" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '12px' }}
-                      itemStyle={{ color: '#4A54F1' }}
-                      formatter={(value: number) => [`$${value} T`, 'Cap']}
-                    />
-                    <XAxis dataKey="month" hide />
-                    <YAxis hide domain={['dataMin - 0.2', 'dataMax + 0.2']} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#4A54F1" 
-                      strokeWidth={2}
-                      fillOpacity={1} 
-                      fill="url(#colorValue)" 
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {chartReady && (
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <AreaChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#4A54F1" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#4A54F1" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '12px' }}
+                        itemStyle={{ color: '#4A54F1' }}
+                        formatter={(value: number) => [`$${value} T`, 'Cap']}
+                      />
+                      <XAxis dataKey="month" hide />
+                      <YAxis hide domain={['dataMin - 0.2', 'dataMax + 0.2']} />
+                      <Area 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#4A54F1" 
+                        strokeWidth={2}
+                        fillOpacity={1} 
+                        fill="url(#colorValue)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
             

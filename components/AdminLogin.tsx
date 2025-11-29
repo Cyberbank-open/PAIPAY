@@ -21,42 +21,17 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
            <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-6">
                <i className="ri-settings-4-line text-3xl"></i>
            </div>
-           <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">需要配置 Netlify 环境变量</h2>
+           <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">系统配置错误</h2>
            <p className="text-gray-500 text-sm text-center mb-8 leading-relaxed">
-             检测到 <code>VITE_SUPABASE_URL</code> 或 <code>VITE_SUPABASE_ANON_KEY</code> 缺失。<br/>
-             为了让后台正常运作，请前往 Netlify 后台进行配置。
+             Supabase 客户端初始化失败。这通常是因为环境变量缺失或 Key 无效。<br/>
+             请检查 <code>lib/supabaseClient.ts</code> 中的配置。
            </p>
-
-           <div className="bg-gray-900 rounded-xl p-4 text-xs font-mono text-gray-300 space-y-2 mb-8 overflow-x-auto">
-              <div className="flex justify-between border-b border-gray-700 pb-2 mb-2">
-                 <span>Variable Name</span>
-                 <span>Value Source</span>
-              </div>
-              <div className="flex justify-between">
-                 <span className="text-blue-400">VITE_SUPABASE_URL</span>
-                 <span>Supabase Project URL</span>
-              </div>
-              <div className="flex justify-between">
-                 <span className="text-blue-400">VITE_SUPABASE_ANON_KEY</span>
-                 <span>Supabase Public Key</span>
-              </div>
-              <div className="flex justify-between">
-                 <span className="text-blue-400">VITE_GOOGLE_API_KEY</span>
-                 <span>Google AI Studio Key</span>
-              </div>
-           </div>
-
-           <div className="text-center">
-             <a 
-               href="https://app.netlify.com" 
-               target="_blank" 
-               rel="noreferrer"
-               className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline"
-             >
-               前往 Netlify 控制台 <i className="ri-arrow-right-line"></i>
-             </a>
-             <p className="text-xs text-gray-400 mt-4">配置完成后，请在 Netlify 点击 "Trigger Deploy" 重新部署。</p>
-           </div>
+           <button 
+             onClick={() => window.location.reload()}
+             className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors"
+           >
+             刷新重试
+           </button>
         </div>
       </div>
     );
@@ -78,11 +53,14 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
          const res = await auth.signInWithPassword({ email, password });
          data = res.data;
          error = res.error;
-      } else {
+      } else if (typeof auth.signIn === 'function') {
          // Fallback for v1
          const res = await auth.signIn({ email, password });
          data = { user: res.user, session: res.session };
          error = res.error;
+      } else {
+         // This can happen if initialization failed silently in supabaseClient.ts
+         throw new Error("Supabase Auth SDK 未正确初始化。可能 Key 无效。");
       }
 
       if (error) {
@@ -104,7 +82,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       } else if (msg.includes("Email not confirmed")) {
          msg = "请先前往邮箱确认注册链接，或在 Supabase 后台关闭邮箱验证。";
       } else if (msg.includes("Failed to fetch")) {
-         msg = "连接失败，请检查网络或 Supabase URL 配置是否正确。";
+         msg = "连接失败：请检查网络或 Supabase Key 是否正确。";
       }
       
       setErrorMsg(msg);
@@ -134,8 +112,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
 
         {errorMsg && (
             <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2 text-red-600 text-xs font-medium animate-pulse">
-                <i className="ri-error-warning-fill"></i>
-                {errorMsg}
+                <i className="ri-error-warning-fill flex-shrink-0"></i>
+                <span className="leading-tight">{errorMsg}</span>
             </div>
         )}
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { generateArticleContent, GeneratedArticle } from '../lib/gemini';
+import { generateArticleContent } from '../lib/gemini';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 interface AdminDashboardProps {
@@ -18,7 +17,7 @@ interface SocialChannel {
     id: string;
     platform: 'twitter' | 'facebook' | 'telegram' | 'wechat' | 'linkedin';
     name: string;
-    group: 'Global' | 'China' | 'Vietnam'; // New Grouping
+    group: 'Global' | 'China' | 'Vietnam';
     icon: string;
     connected: boolean;
 }
@@ -30,7 +29,7 @@ interface Notice {
     meta_desc: string;
     stream: ContentStream;
     category: string;
-    language: string; // Article Language
+    language: string; 
     tag: string;
     date: string;
     author: string;
@@ -42,17 +41,7 @@ interface Notice {
     raw_source?: string;
     generated_image?: string; 
     poster_template?: string; 
-    social_drafts?: Record<string, string>; // Map channel ID to copy
-}
-
-interface TeamMember {
-    id: number;
-    name: string;
-    email: string;
-    role: '超级管理员' | '主编' | '观察员';
-    last_active: string;
-    status: 'active' | 'inactive';
-    avatar_color: string;
+    social_drafts?: Record<string, string>; 
 }
 
 interface Tutorial {
@@ -60,40 +49,6 @@ interface Tutorial {
     title: string;
     steps: string[];
 }
-
-// --- Mock Data ---
-const dailyData = [
-  { name: '周一', views: 4000, shares: 240, active: 120 },
-  { name: '周二', views: 3000, shares: 139, active: 98 },
-  { name: '周三', views: 6000, shares: 980, active: 200 },
-  { name: '周四', views: 2780, shares: 390, active: 150 },
-  { name: '周五', views: 1890, shares: 480, active: 110 },
-  { name: '周六', views: 2390, shares: 380, active: 90 },
-  { name: '周日', views: 3490, shares: 430, active: 130 },
-];
-
-const mockNotices: Notice[] = [
-    { id: 101, stream: 'market', language: 'CN', title: '2025年Q1 全球稳定币监管白皮书', slug: '2025-q1-stablecoin-regulation-whitepaper', meta_desc: '深入剖析东南亚、欧盟及美洲地区的稳定币合规框架演变。', category: 'Regulatory', tag: 'Report', date: '2024-10-24', author: 'Alex Chen', status: 'Published', workflow_step: 'published', views: 12400, shares: 450 },
-    { id: 102, stream: 'notice', language: 'CN', title: '系统维护公告：Solana 节点升级', slug: 'maintenance-solana-node-upgrade', meta_desc: '为了提供更快的交易确认速度，我们将于本周五进行节点维护。', category: 'Maintenance', tag: 'System', date: '2024-10-22', author: 'DevOps Team', status: 'Archived', workflow_step: 'published', views: 5300, shares: 12 },
-    { id: 103, stream: 'market', language: 'EN', title: 'New Feature: Enterprise MPC Wallet', slug: 'feature-enterprise-mpc-wallet', meta_desc: 'PAIPAY officially launches one-stop treasury management solution based on MPC technology.', category: 'Product', tag: 'Feature', date: '2024-10-20', author: 'Product Team', status: 'Published', workflow_step: 'published', views: 8900, shares: 210 },
-];
-
-const mockTeam: TeamMember[] = [
-    { id: 1, name: 'Alex Chen', email: 'alex@paipay.finance', role: '超级管理员', last_active: '在线', status: 'active', avatar_color: 'bg-blue-600' },
-    { id: 2, name: 'Sarah Wu', email: 'sarah@paipay.finance', role: '主编', last_active: '2小时前', status: 'active', avatar_color: 'bg-pink-600' },
-    { id: 3, name: 'David Li', email: 'david@paipay.finance', role: '观察员', last_active: '1天前', status: 'inactive', avatar_color: 'bg-yellow-600' },
-];
-
-const checklist = [
-    { id: 1, label: '配置 Supabase 数据库与鉴权', status: 'done', desc: '用户系统与数据存储已就绪' },
-    { id: 2, label: '连接 Gemini AI (Pro/Flash) 模型', status: 'done', desc: 'AI 核心大脑已激活' },
-    { id: 3, label: '定义品牌智能 (Brand Intelligence)', status: 'done', desc: 'AI 已学习 PAIPAY 品牌语调' },
-    { id: 4, label: '前端部署 (Netlify/Vercel)', status: 'pending', desc: '将代码推送到 GitHub 并连接 Netlify 进行自动化部署。' },
-    { id: 5, label: '域名购买与 DNS 配置', status: 'pending', desc: '在 Namecheap/GoDaddy 购买域名，添加 CNAME 记录。' },
-    { id: 6, label: '配置全球 CDN (Cloudflare)', status: 'pending', desc: '配置 Nameservers 以获得全球加速。' },
-    { id: 7, label: '后端/边缘函数部署', status: 'pending', desc: '配置 Supabase Edge Functions。' },
-    { id: 8, label: '强制启用 2FA 双重验证', status: 'pending', desc: '提升管理员账户安全性' },
-];
 
 const tutorials: Record<number, Tutorial> = {
     4: {
@@ -323,7 +278,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   
   // --- Report State ---
   const [reportGenerating, setReportGenerating] = useState(false);
-  const [reportPeriod, setReportPeriod] = useState<'weekly' | 'monthly'>('weekly');
+  const [reportPeriod] = useState<'weekly' | 'monthly'>('weekly');
 
   const t = {
     EN: {
@@ -398,10 +353,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   };
 
   const text = t[lang];
-
-  // Categories
-  const marketCategories = ['Global Macro', 'Crypto Trends', 'Regulatory', 'Payment Rails', 'Forex'];
-  const noticeCategories = ['System Upgrade', 'Maintenance', 'API Update', 'Security Alert', 'New Feature'];
 
   // --- Actions ---
   const handleLogout = async () => {
@@ -628,16 +579,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   }
 
   const handleTutorialClick = (id: number) => {
-      const tutorial = tutorials[id];
-      if (tutorial) {
-          setActiveTutorial(tutorial);
-      } else {
-          showNotification('该步骤暂无教程', 'info');
+      if (tutorials[id]) {
+          setActiveTutorial(tutorials[id]);
       }
-  }
+  };
 
-  // --- Renderers ---
-  
   const renderSidebar = () => (
     <>
         <div 
@@ -1035,17 +981,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
              </div>
         )}
         
-        {/* Placeholder for other tabs to keep code short, logic same structure */}
+        {/* Placeholder for other tabs */}
         {activeTab !== 'studio' && (
             <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">
                 <i className="ri-tools-line text-4xl mb-4"></i>
                 <p>Module <strong>{activeTab}</strong> is ready for expansion.</p>
-                <button 
-                    onClick={() => setActiveTab('studio')}
-                    className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-bold text-gray-700"
-                >
-                    Return to Studio
-                </button>
+                <div className="flex gap-4 mt-6">
+                    {activeTab === 'reports' && !reportGenerating && (
+                        <button 
+                            onClick={handlePushReport}
+                            className="px-6 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold shadow-lg"
+                        >
+                            Generate Manual Report
+                        </button>
+                    )}
+                    {activeTab === 'launchpad' && (
+                         <div className="text-left w-full max-w-lg space-y-3">
+                            {Object.values(tutorials).map(t => (
+                                <button key={t.id} onClick={() => handleTutorialClick(t.id)} className="w-full text-left p-3 border rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all text-sm">
+                                    <i className="ri-book-read-line mr-2"></i> {t.title}
+                                </button>
+                            ))}
+                         </div>
+                    )}
+                </div>
+                {activeTab !== 'launchpad' && (
+                    <button 
+                        onClick={() => setActiveTab('studio')}
+                        className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-bold text-gray-700"
+                    >
+                        Return to Studio
+                    </button>
+                )}
             </div>
         )}
 
