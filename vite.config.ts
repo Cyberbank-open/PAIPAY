@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    // Force esbuild to process all typescript files in the project
+    // This fixes the issue where files in 'lib/' are not transpiled by Rollup
+    esbuild: {
+      loader: 'tsx',
+      include: ['**/*.ts', '**/*.tsx'],
+      exclude: [],
+    },
     build: {
       outDir: 'dist', // Netlify output directory
     },
