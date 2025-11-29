@@ -1,10 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// User provided credentials fallback
-// NOTE: Ideally these should be in .env files, but hardcoded here to fix deployment immediately.
-const PROVIDED_URL = 'https://bctjfhjvtajwzdgujqlh.supabase.co';
-const PROVIDED_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdGpmaGp2dGFqd3pkZ3VqcWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MDEzNjIsImV4cCI6MjA3OTk3NzM2Mn0.VkDpjYr6vky540Jp5D1R1_OXqHpXKJ7EcjeEZqynl4Y';
-
 // Access environment variables using type casting to avoid TS errors during build
 // We remove any trailing slash from the URL to prevent double-slash errors in requests
 const getEnvVar = (key: string, fallback: string) => {
@@ -15,9 +10,9 @@ const getEnvVar = (key: string, fallback: string) => {
   }
 };
 
-const rawUrl = getEnvVar('VITE_SUPABASE_URL', PROVIDED_URL);
+const rawUrl = getEnvVar('VITE_SUPABASE_URL', '');
 const supabaseUrl = rawUrl ? rawUrl.replace(/\/$/, '') : '';
-const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY', PROVIDED_KEY);
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY', '');
 
 // Export a flag to check if the client is properly configured
 export const isSupabaseConfigured = 
@@ -36,7 +31,7 @@ try {
   
   client = createClient(supabaseUrl, supabaseAnonKey);
 } catch (error) {
-  console.error("Supabase Client Initialization Failed:", error);
+  console.warn("Supabase Client Initialization: Environment variables missing. Using placeholder client.");
   // Fallback dummy client to allow app to render error UI instead of white screen
   // This prevents the entire JS bundle from failing to execute
   client = createClient('https://placeholder.supabase.co', 'placeholder-key');

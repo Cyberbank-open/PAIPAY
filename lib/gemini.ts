@@ -1,8 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// User provided fallback
-const PROVIDED_API_KEY = 'AIzaSyDPiiB55oDgIxnlVSRCER1uunQR3GLK1iU';
-
 // Use type casting to access env vars safely without interface conflicts
 const getEnvVar = (key: string, fallback: string) => {
   try {
@@ -12,7 +9,7 @@ const getEnvVar = (key: string, fallback: string) => {
   }
 };
 
-const apiKey = getEnvVar('VITE_GOOGLE_API_KEY', PROVIDED_API_KEY);
+const apiKey = getEnvVar('VITE_GOOGLE_API_KEY', '');
 
 // Initialize AI client only if key is present
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
