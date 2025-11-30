@@ -99,23 +99,28 @@ interface Translations {
     faq: {
       title: string;
       description: string;
-      q1: string; a1: string;
-      q2: string; a2: string;
-      q3: string; a3: string;
-      q4: string; a4: string;
-      q5: string; a5: string;
+      q1: string;
+      a1: string;
+      q2: string;
+      a2: string;
+      q3: string;
+      a3: string;
+      q4: string;
+      a4: string;
+      q5: string;
+      a5: string;
     };
-    footer: {
-      ready: string;
-      rights: string;
-      privacy: string;
-      terms: string;
-      compliance: string;
+    footer: { 
+        ready: string;
+        rights: string;
+        privacy: string;
+        terms: string;
+        compliance: string; 
     };
-    notices: {
-      n1: string;
-      n2: string;
-      n3: string;
+    notices: { 
+        n1: string;
+        n2: string;
+        n3: string; 
     };
     download_drawer: {
       select_title: string;
@@ -124,6 +129,18 @@ interface Translations {
       android_rec: string;
       btn_back: string;
       btn_confirm: string;
+    };
+    admin: {
+      studio: {
+        market_pulse: string;
+        visual_engine: string;
+        generate_poster: string;
+        workflow_audit: string;
+        layer_bg: string;
+        layer_mask: string;
+        layer_text: string;
+        topic_select: string;
+      }
     };
   };
 }
@@ -210,6 +227,18 @@ const translations: Translations = {
       android_rec: 'Google Play recommended for auto-updates',
       btn_back: 'Back',
       btn_confirm: 'Confirm'
+    },
+    admin: {
+        studio: {
+            market_pulse: 'Market Pulse (Input)',
+            visual_engine: 'Visual Engine',
+            generate_poster: 'Generate Poster (Layered)',
+            workflow_audit: 'Submit for Audit',
+            layer_bg: 'Layer 1: Gen/Stock',
+            layer_mask: 'Layer 2: Brand Mask',
+            layer_text: 'Layer 3: Typography',
+            topic_select: 'Use This Topic'
+        }
     }
   },
   CN: {
@@ -270,6 +299,18 @@ const translations: Translations = {
       android_rec: '推荐使用 Google Play 获取自动更新',
       btn_back: '返回',
       btn_confirm: '确认前往'
+    },
+    admin: {
+        studio: {
+            market_pulse: '市场脉动 (素材源)',
+            visual_engine: '视觉合成引擎',
+            generate_poster: '生成分层海报',
+            workflow_audit: '提交审核',
+            layer_bg: '图层 1: 底图 (AI/Stock)',
+            layer_mask: '图层 2: 品牌蒙版',
+            layer_text: '图层 3: 动态排版',
+            topic_select: '引用此热点'
+        }
     }
   },
   VN: {
@@ -330,6 +371,18 @@ const translations: Translations = {
       android_rec: 'Khuyên dùng Google Play để tự động cập nhật',
       btn_back: 'Quay lại',
       btn_confirm: 'Xác nhận'
+    },
+    admin: {
+        studio: {
+            market_pulse: 'Market Pulse (Input)',
+            visual_engine: 'Visual Engine',
+            generate_poster: 'Tạo Poster (Layered)',
+            workflow_audit: 'Gửi Duyệt',
+            layer_bg: 'Lớp 1: Ảnh Nền',
+            layer_mask: 'Lớp 2: Mặt Nạ Thương Hiệu',
+            layer_text: 'Lớp 3: Typography',
+            topic_select: 'Chọn Chủ Đề Này'
+        }
     }
   },
   TH: {
@@ -390,6 +443,18 @@ const translations: Translations = {
       android_rec: 'แนะนำให้ใช้ Google Play เพื่อการอัปเดตอัตโนมัติ',
       btn_back: 'ย้อนกลับ',
       btn_confirm: 'ยืนยัน'
+    },
+    admin: {
+        studio: {
+            market_pulse: 'Market Pulse (Input)',
+            visual_engine: 'Visual Engine',
+            generate_poster: 'Generate Poster',
+            workflow_audit: 'Submit Audit',
+            layer_bg: 'Layer 1: Background',
+            layer_mask: 'Layer 2: Mask',
+            layer_text: 'Layer 3: Text',
+            topic_select: 'Select'
+        }
     }
   },
   KH: {
@@ -450,6 +515,18 @@ const translations: Translations = {
       android_rec: 'ណែនាំឱ្យប្រើ Google Play សម្រាប់ការធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ',
       btn_back: 'ត្រឡប់ក្រោយ',
       btn_confirm: 'បញ្ជាក់'
+    },
+    admin: {
+        studio: {
+            market_pulse: 'Market Pulse',
+            visual_engine: 'Visual Engine',
+            generate_poster: 'Generate Poster',
+            workflow_audit: 'Submit Audit',
+            layer_bg: 'Layer 1: BG',
+            layer_mask: 'Layer 2: Mask',
+            layer_text: 'Layer 3: Text',
+            topic_select: 'Select'
+        }
     }
   }
 };

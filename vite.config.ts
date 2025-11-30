@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  // Use explicit cast for process to avoid type errors if @types/node is not fully compatible with the build env
+  const env = loadEnv(mode, (process as any).cwd(), '')
 
   // Helper to encode a value or return an empty string if missing
   const encode = (value: string) => {
