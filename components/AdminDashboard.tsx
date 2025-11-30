@@ -128,20 +128,20 @@ const RichTextEditor: React.FC<{ value: string; onChange: (html: string) => void
 
     return (
         <div className={`flex flex-col border border-gray-200 rounded-xl overflow-hidden bg-white ${isFocused ? 'ring-2 ring-blue-100 border-blue-400' : ''} ${className}`}>
-            <div className="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-100 overflow-x-auto">
-                <button title="Bold" onClick={() => exec('bold')} className="p-2 rounded hover:bg-gray-200 text-gray-600"><i className="ri-bold"></i></button>
-                <button title="Italic" onClick={() => exec('italic')} className="p-2 rounded hover:bg-gray-200 text-gray-600"><i className="ri-italic"></i></button>
-                <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                <button title="H2" onClick={() => exec('formatBlock', '<h2>')} className="p-2 rounded hover:bg-gray-200 text-gray-600 font-bold text-xs">H2</button>
-                <button title="H3" onClick={() => exec('formatBlock', '<h3>')} className="p-2 rounded hover:bg-gray-200 text-gray-600 font-bold text-xs">H3</button>
-                <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                <button title="Unordered List" onClick={() => exec('insertUnorderedList')} className="p-2 rounded hover:bg-gray-200 text-gray-600"><i className="ri-list-unordered"></i></button>
-                <button title="Quote" onClick={() => exec('formatBlock', '<blockquote>')} className="p-2 rounded hover:bg-gray-200 text-gray-600"><i className="ri-double-quotes-l"></i></button>
+            <div className="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-100 overflow-x-auto scrollbar-hide">
+                <button title="Bold" onClick={() => exec('bold')} className="p-2 rounded hover:bg-gray-200 text-gray-600 flex-shrink-0"><i className="ri-bold"></i></button>
+                <button title="Italic" onClick={() => exec('italic')} className="p-2 rounded hover:bg-gray-200 text-gray-600 flex-shrink-0"><i className="ri-italic"></i></button>
+                <div className="w-px h-4 bg-gray-300 mx-1 flex-shrink-0"></div>
+                <button title="H2" onClick={() => exec('formatBlock', '<h2>')} className="p-2 rounded hover:bg-gray-200 text-gray-600 font-bold text-xs flex-shrink-0">H2</button>
+                <button title="H3" onClick={() => exec('formatBlock', '<h3>')} className="p-2 rounded hover:bg-gray-200 text-gray-600 font-bold text-xs flex-shrink-0">H3</button>
+                <div className="w-px h-4 bg-gray-300 mx-1 flex-shrink-0"></div>
+                <button title="Unordered List" onClick={() => exec('insertUnorderedList')} className="p-2 rounded hover:bg-gray-200 text-gray-600 flex-shrink-0"><i className="ri-list-unordered"></i></button>
+                <button title="Quote" onClick={() => exec('formatBlock', '<blockquote>')} className="p-2 rounded hover:bg-gray-200 text-gray-600 flex-shrink-0"><i className="ri-double-quotes-l"></i></button>
             </div>
             <div 
                 ref={editorRef}
                 contentEditable
-                className="flex-1 p-6 outline-none min-h-[400px] prose prose-blue prose-p:mb-4 prose-headings:mb-3 prose-headings:font-bold prose-ul:list-disc prose-li:mb-1 max-w-none text-gray-700 leading-relaxed"
+                className="flex-1 p-4 md:p-6 outline-none min-h-[300px] md:min-h-[400px] prose prose-blue prose-p:mb-4 prose-headings:mb-3 prose-headings:font-bold prose-ul:list-disc prose-li:mb-1 max-w-none text-gray-700 leading-relaxed text-sm md:text-base"
                 onInput={(e) => onChange(e.currentTarget.innerHTML)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => { setIsFocused(false); onChange(editorRef.current?.innerHTML || ''); }}
@@ -161,16 +161,16 @@ const Toast: React.FC<{ message: string; show: boolean; onClose: () => void; typ
     }, [show, onClose, type]);
 
     return (
-        <div className={`fixed bottom-6 right-6 z-[100] transform transition-all duration-300 ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}>
-            <div className={`${type === 'success' ? 'bg-gray-900 border-gray-800' : (type === 'loading' ? 'bg-blue-600 border-blue-500' : (type === 'error' ? 'bg-red-600 border-red-500' : 'bg-gray-800 border-gray-700'))} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border min-w-[300px]`}>
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6 z-[100] transform transition-all duration-300 w-[90%] md:w-auto ${show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}>
+            <div className={`${type === 'success' ? 'bg-gray-900 border-gray-800' : (type === 'loading' ? 'bg-blue-600 border-blue-500' : (type === 'error' ? 'bg-red-600 border-red-500' : 'bg-gray-800 border-gray-700'))} text-white px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 border md:min-w-[300px] w-full`}>
                 {type === 'loading' ? (
-                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0"></div>
                 ) : (
-                    <div className={`w-6 h-6 rounded-full ${type === 'success' ? 'bg-green-500 text-black' : (type === 'error' ? 'bg-white text-red-600' : 'bg-blue-500 text-white')} flex items-center justify-center text-sm`}>
+                    <div className={`w-6 h-6 rounded-full ${type === 'success' ? 'bg-green-500 text-black' : (type === 'error' ? 'bg-white text-red-600' : 'bg-blue-500 text-white')} flex items-center justify-center text-sm flex-shrink-0`}>
                         <i className={type === 'success' ? "ri-check-line font-bold" : (type === 'error' ? "ri-close-line font-bold" : "ri-information-line font-bold")}></i>
                     </div>
                 )}
-                <span className="font-bold text-sm tracking-wide">{message}</span>
+                <span className="font-bold text-sm tracking-wide truncate">{message}</span>
             </div>
         </div>
     );
@@ -184,10 +184,10 @@ const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: string; chi
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-bold text-gray-900">{title}</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-900"><i className="ri-close-line text-xl"></i></button>
+                    <h3 className="font-bold text-gray-900 truncate">{title}</h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-900 p-2"><i className="ri-close-line text-xl"></i></button>
                 </div>
-                <div className="p-6 max-h-[80vh] overflow-y-auto">
+                <div className="p-6 max-h-[75vh] overflow-y-auto">
                     {children}
                 </div>
             </div>
@@ -203,6 +203,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [toastType, setToastType] = useState<'success' | 'info' | 'loading' | 'error'>('success');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState<string>('Loading...');
+  const [isMobile, setIsMobile] = useState(false);
 
   // Brand Configuration State
   const [brandConfig, setBrandConfig] = useState<BrandConfig>({
@@ -237,6 +238,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [assetMode, setAssetMode] = useState<'template' | 'ai_gen'>('template');
   const [aiImageLoading, setAiImageLoading] = useState(false);
   const [previewRatio, setPreviewRatio] = useState<PosterRatio>('1:1'); // Default preview ratio
+
+  // Resize Handler for Mobile Detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // User Fetching
   useEffect(() => {
@@ -802,10 +811,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   // --- RENDERERS ---
 
   const renderStrategyInput = () => (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 animate-fade-in">
           {/* Left: Sources & Config */}
-          <div className="space-y-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-full flex flex-col">
+          <div className="space-y-4 md:space-y-6 order-2 lg:order-1">
+                <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-200 shadow-sm h-full flex flex-col">
                     <div className="flex justify-between items-center mb-4">
                         <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                             <i className={`${stream === 'market' ? 'ri-fire-fill text-orange-500' : 'ri-notification-3-fill text-blue-500'}`}></i> 
@@ -837,7 +846,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         </div>
                     )}
 
-                    <div className="space-y-3 flex-1 overflow-y-auto max-h-[400px]">
+                    <div className="space-y-3 flex-1 overflow-y-auto max-h-[250px] md:max-h-[400px]">
                         {trendingTopics.map(topic => (
                             <div key={topic.id} onClick={() => ingestTopic(topic)} className="p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all group">
                                 <div className="flex justify-between items-start">
@@ -858,9 +867,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           </div>
 
           {/* Right: Strategy Config */}
-          <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6 order-1 lg:order-2">
+              <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-200 shadow-sm">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
                         <div className="flex items-center gap-2">
                              <h3 className="text-lg font-bold text-gray-900">Step 1: 内容策略 (Strategy)</h3>
                              <button onClick={navigateToSettings} className="text-gray-300 hover:text-blue-600 transition-colors" title="AI Configuration">
@@ -869,7 +878,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         </div>
                         
                         {/* Stream Switcher */}
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                        <div className="flex bg-gray-100 p-1 rounded-lg self-start md:self-auto">
                             <button 
                                 onClick={() => setStream('market')}
                                 className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${stream === 'market' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
@@ -885,7 +894,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">目标语言</label>
                              <select 
@@ -915,10 +924,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     </div>
 
                     <div className="mb-4">
-                        <div className="flex gap-4 border-b border-gray-100 mb-4">
-                            <button onClick={() => setInputType('text')} className={`pb-2 text-sm font-bold border-b-2 transition-all ${inputType === 'text' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400'}`}>文本输入</button>
-                            <button onClick={() => setInputType('image')} className={`pb-2 text-sm font-bold border-b-2 transition-all ${inputType === 'image' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400'}`}>图片/海报源</button>
-                            <button onClick={() => setInputType('url')} className={`pb-2 text-sm font-bold border-b-2 transition-all ${inputType === 'url' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400'}`}>URL 抓取</button>
+                        <div className="flex gap-4 border-b border-gray-100 mb-4 overflow-x-auto">
+                            <button onClick={() => setInputType('text')} className={`pb-2 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${inputType === 'text' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400'}`}>文本输入</button>
+                            <button onClick={() => setInputType('image')} className={`pb-2 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${inputType === 'image' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400'}`}>图片/海报源</button>
+                            <button onClick={() => setInputType('url')} className={`pb-2 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${inputType === 'url' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400'}`}>URL 抓取</button>
                         </div>
 
                         {inputType === 'text' && (
@@ -966,7 +975,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <button 
                             onClick={handleAiGenerate}
                             disabled={aiGenerating || !currentArticle.raw_source}
-                            className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all shadow-lg shadow-gray-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="w-full md:w-auto bg-gray-900 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all shadow-lg shadow-gray-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {aiGenerating ? (
                                 <>
@@ -987,21 +996,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   );
 
   const renderEditor = () => (
-      <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-200 shadow-sm animate-fade-in">
-           <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-gray-200 shadow-sm animate-fade-in">
+           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-gray-100 pb-4 gap-4">
                <div>
                    <h3 className="text-lg font-bold text-gray-900">Step 2: 智能编辑 (Editor)</h3>
                    <p className="text-xs text-gray-500">AI 已完成标准化排版。请检查段落间距与标题层级。</p>
                </div>
-               <div className="flex gap-2">
-                   <button onClick={() => handleWorkflowClick('strategy')} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm font-bold">返回</button>
-                   <button onClick={() => handleWorkflowClick('assets')} className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md">下一步：视觉引擎</button>
+               <div className="flex gap-2 w-full md:w-auto">
+                   <button onClick={() => handleWorkflowClick('strategy')} className="flex-1 md:flex-none px-4 py-3 md:py-2 text-gray-500 hover:text-gray-900 text-sm font-bold border border-gray-200 md:border-transparent rounded-lg">返回</button>
+                   <button onClick={() => handleWorkflowClick('assets')} className="flex-[2] md:flex-none px-6 py-3 md:py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md">下一步：视觉引擎</button>
                </div>
            </div>
 
            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                {/* Metadata Column */}
-               <div className="space-y-4">
+               <div className="space-y-4 order-2 lg:order-1">
                    <div>
                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">文章标题</label>
                        <textarea 
@@ -1044,7 +1053,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                </div>
 
                {/* Editor Column */}
-               <div className="lg:col-span-3">
+               <div className="lg:col-span-3 order-1 lg:order-2">
                     <div className="flex justify-between items-center mb-2">
                         <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">正文内容 (HTML 预览)</label>
                         <span className="text-xs text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded">标准排版已应用</span>
@@ -1053,7 +1062,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     <RichTextEditor 
                         value={currentArticle.content || ''} 
                         onChange={(html) => setCurrentArticle({...currentArticle, content: html})}
-                        className="min-h-[500px]"
+                        className="min-h-[300px] md:min-h-[500px]"
                     />
                </div>
            </div>
@@ -1065,21 +1074,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       const templates = stream === 'market' ? MARKET_TEMPLATES : SYSTEM_TEMPLATES;
 
       return (
-        <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-200 shadow-sm animate-fade-in">
-                <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+        <div className="bg-white p-4 md:p-8 rounded-2xl border border-gray-200 shadow-sm animate-fade-in">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-gray-100 pb-4 gap-4">
                 <div>
                     <h3 className="text-lg font-bold text-gray-900">Step 3: 视觉引擎 (Assets)</h3>
                     <p className="text-xs text-gray-500">标准化输出所有社交媒体尺寸 (9:16 / 16:9 / 1:1)。品牌 VI 自动合成。</p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => handleWorkflowClick('editor')} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm font-bold">返回</button>
-                    <button onClick={() => handleWorkflowClick('distribution')} className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md">下一步：全网分发</button>
+                <div className="flex gap-2 w-full md:w-auto">
+                    <button onClick={() => handleWorkflowClick('editor')} className="flex-1 md:flex-none px-4 py-3 md:py-2 text-gray-500 hover:text-gray-900 text-sm font-bold border border-gray-200 md:border-transparent rounded-lg">返回</button>
+                    <button onClick={() => handleWorkflowClick('distribution')} className="flex-[2] md:flex-none px-6 py-3 md:py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md">下一步：全网分发</button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left: Configuration & Templates */}
-                    <div className="space-y-6">
+                    {/* Left: Configuration & Templates (Order 2 on Mobile) */}
+                    <div className="space-y-6 order-2 lg:order-1">
                         {/* Tab Switcher */}
                         <div className="flex p-1 bg-gray-100 rounded-xl">
                              <button 
@@ -1106,7 +1115,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                             <button 
                                                 key={tpl.id}
                                                 onClick={() => handleTemplateSelect(tpl.id)}
-                                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${currentArticle.poster_template_id === tpl.id ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+                                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all active:scale-95 ${currentArticle.poster_template_id === tpl.id ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
                                             >
                                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${tpl.previewColor}`}>
                                                     <i className={`${tpl.icon} text-lg text-gray-700`}></i>
@@ -1172,38 +1181,39 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         </div>
                     </div>
 
-                    {/* Right: Live Preview */}
-                    <div className="lg:col-span-2 flex flex-col h-full bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden relative">
+                    {/* Right: Live Preview (Order 1 on Mobile for better visibility) */}
+                    <div className="lg:col-span-2 flex flex-col h-full bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden relative order-1 lg:order-2">
                          {/* INDEPENDENT Ratio Switcher */}
                          <div className="absolute top-4 left-0 w-full flex justify-center z-10 pointer-events-none">
-                            <div className="flex bg-white/90 backdrop-blur-md rounded-full p-1 border border-gray-200 shadow-sm pointer-events-auto">
+                            <div className="flex bg-white/90 backdrop-blur-md rounded-full p-1 border border-gray-200 shadow-sm pointer-events-auto overflow-x-auto max-w-[90%] md:max-w-none scrollbar-hide">
                                 <button 
                                     onClick={() => setPreviewRatio('1:1')}
-                                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${previewRatio === '1:1' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${previewRatio === '1:1' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
                                 >
                                     <i className="ri-instagram-line"></i> Square (1:1)
                                 </button>
                                 <button 
                                     onClick={() => setPreviewRatio('16:9')}
-                                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${previewRatio === '16:9' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${previewRatio === '16:9' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
                                 >
                                     <i className="ri-twitter-x-line"></i> Post (16:9)
                                 </button>
                                 <button 
                                     onClick={() => setPreviewRatio('9:16')}
-                                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${previewRatio === '9:16' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${previewRatio === '9:16' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
                                 >
                                     <i className="ri-smartphone-line"></i> Story (9:16)
                                 </button>
                             </div>
                          </div>
 
-                        <div className="flex-grow flex items-center justify-center p-12 mt-12 overflow-hidden">
+                        <div className="flex-grow flex items-center justify-center p-6 md:p-12 mt-12 md:mt-12 overflow-hidden bg-gray-100/50 min-h-[400px]">
                             {/* Canvas Simulation Container */}
                             <div 
                                 className="bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 relative flex items-center justify-center overflow-hidden"
                                 style={{ 
-                                    width: previewRatio === '16:9' ? '100%' : (previewRatio === '9:16' ? '45%' : '65%'),
+                                    // Mobile: Force 100% width for visibility. Desktop: Scale for simulation
+                                    width: isMobile ? '100%' : (previewRatio === '16:9' ? '100%' : (previewRatio === '9:16' ? '45%' : '65%')),
                                     aspectRatio: previewRatio.replace(':', '/'),
                                     maxWidth: '100%',
                                     maxHeight: '100%'
@@ -1242,15 +1252,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   };
 
   const renderDistribution = () => (
-      <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-200 shadow-sm animate-fade-in">
-           <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-gray-200 shadow-sm animate-fade-in">
+           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-gray-100 pb-4 gap-4">
                <div>
                    <h3 className="text-lg font-bold text-gray-900">Step 4: 全网分发 (Distribute)</h3>
                    <p className="text-xs text-gray-500">已自动过滤 Markdown 符号。海报已按渠道标准生成。</p>
                </div>
-               <div className="flex gap-2">
-                   <button onClick={() => handleWorkflowClick('assets')} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm font-bold">返回</button>
-                   <button onClick={handleApproveAndPublish} className="px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 shadow-lg shadow-green-200 flex items-center gap-2">
+               <div className="flex gap-2 w-full md:w-auto">
+                   <button onClick={() => handleWorkflowClick('assets')} className="flex-1 md:flex-none px-4 py-3 md:py-2 text-gray-500 hover:text-gray-900 text-sm font-bold border border-gray-200 md:border-transparent rounded-lg">返回</button>
+                   <button onClick={handleApproveAndPublish} className="flex-[2] md:flex-none px-6 py-3 md:py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 shadow-lg shadow-green-200 flex items-center justify-center gap-2">
                        <i className="ri-rocket-fill"></i> 确认发布
                    </button>
                </div>
@@ -1258,13 +1268,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                {/* Channel Selection */}
-               <div className="space-y-4">
+               <div className="space-y-4 order-2 lg:order-1">
                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">分发矩阵 (按语言)</h4>
                    {socialChannels.map(ch => (
                         <div 
                             key={ch.id}
                             onClick={() => handleChannelToggle(ch.id)}
-                            className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 relative overflow-hidden ${selectedChannels.has(ch.id) ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-white border-gray-200 opacity-60 hover:opacity-100'}`}
+                            className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 relative overflow-hidden active:scale-[0.98] ${selectedChannels.has(ch.id) ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-white border-gray-200 opacity-60 hover:opacity-100'}`}
                         >
                             <i className={`${ch.icon} text-xl ${selectedChannels.has(ch.id) ? 'text-blue-600' : 'text-gray-400'}`}></i>
                             <div className="flex-1">
@@ -1287,8 +1297,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                </div>
 
                {/* Preview Panel */}
-               <div className="lg:col-span-2">
-                   <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+               <div className="lg:col-span-2 order-1 lg:order-2">
+                   <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
                        {Array.from(selectedChannels).map(id => {
                            const ch = socialChannels.find(c => c.id === id);
                            if(!ch) return null;
@@ -1304,7 +1314,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                        })}
                    </div>
 
-                   <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 relative">
+                   <div className="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-200 relative">
                         {/* Fake Platform UI */}
                         <div className="flex items-center gap-3 mb-4 opacity-70">
                             <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
@@ -1344,7 +1354,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
      <div className="animate-fade-in">
          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
              <div>
-                 <h1 className="text-3xl font-bold text-gray-900 mb-1">{text.studio.title}</h1>
+                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{text.studio.title}</h1>
                  <p className="text-gray-500 text-sm">{text.studio.subtitle}</p>
              </div>
              <div className="flex gap-2">
@@ -1353,7 +1363,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         setCurrentArticle({ workflow_step: 'strategy', title: '', content: '', raw_source: '', tag: 'TREND', language: 'CN', stream: 'market', image_prompt: '' });
                         setAssetMode('template');
                     }}
-                    className="px-6 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-black shadow-lg shadow-gray-300 transition-all flex items-center gap-2"
+                    className="w-full md:w-auto px-6 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-black shadow-lg shadow-gray-300 transition-all flex items-center justify-center gap-2"
                 >
                     <i className="ri-add-line"></i>{text.studio.new_btn}
                 </button>
@@ -1361,8 +1371,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
          </div>
 
          {/* Stepper */}
-         <div className="mb-10 overflow-x-auto pb-2 border-b border-gray-100">
-            <div className="flex items-center min-w-max gap-8">
+         <div className="mb-10 overflow-x-auto pb-2 border-b border-gray-100 scrollbar-hide">
+            <div className="flex items-center min-w-max gap-8 px-1">
                 {['strategy', 'editor', 'assets', 'distribution'].map((step, idx) => {
                     const isCurrent = currentArticle.workflow_step === step;
                     const isPassed = ['strategy', 'editor', 'assets', 'distribution'].indexOf(currentArticle.workflow_step || 'strategy') > idx;
@@ -1467,7 +1477,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       <Modal 
         isOpen={isBrandModalOpen} 
         onClose={() => setIsBrandModalOpen(false)} 
-        title="品牌视觉规范配置 (Brand VI)"
+        title="品牌视觉规范配置 (VI)"
       >
           <div className="space-y-6">
               {/* Logo Config */}
@@ -1567,14 +1577,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
       {renderSidebar()}
       
-      <div className="md:hidden h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sticky top-0 z-30">
+      <div className="md:hidden h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-3">
                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">P</div>
                <span className="font-bold text-lg">{text.sidebar.brand}</span>
           </div>
-          <button onClick={() => setIsSidebarOpen(true)} className="text-gray-600"><i className="ri-menu-line text-2xl"></i></button>
+          <button onClick={() => setIsSidebarOpen(true)} className="text-gray-600 p-2"><i className="ri-menu-line text-2xl"></i></button>
       </div>
-      <main className="p-6 max-w-7xl mx-auto">
+      <main className="p-4 md:p-6 max-w-7xl mx-auto">
         {activeTab === 'studio' && renderStudio()}
         {activeTab === 'launchpad' && renderLaunchpad()}
         {activeTab === 'reports' && renderReports()}
