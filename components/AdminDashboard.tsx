@@ -540,7 +540,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           currentArticle.category || 'General',
           stream,
           articleLength,
-          aiConfig.creationModel // Pass the selected creation model
+          aiConfig.creationModel, // Pass the selected creation model
+          aiConfig.creationApiKey // Pass the specific API key from config
         );
 
         if (!generatedData) throw new Error("No data generated");
@@ -659,7 +660,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
           const videoUri = await generateVideoContent(
               finalPrompt,
-              previewRatio as '16:9' | '9:16'
+              previewRatio as '16:9' | '9:16',
+              aiConfig.creationApiKey // Try using the configured key if available, otherwise it falls back to process.env
           );
 
           if (videoUri) {
@@ -955,7 +957,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                  const translated = await translateText(
                      cleaned.substring(0, 300), // Translate first 300 chars for specific social draft
                      ch.lang_code,
-                     aiConfig.translationModel
+                     aiConfig.translationModel,
+                     aiConfig.creationApiKey // Pass config key if present
                  );
                  
                  setCurrentArticle(prev => ({
@@ -1917,6 +1920,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                       <option value="gpt-4o">GPT-4o</option>
                                   </select>
                               </div>
+                              <div className="md:col-span-2">
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">API Key (留空则使用默认配置)</label>
+                                  <input 
+                                    type="password"
+                                    value={aiConfig.creationApiKey}
+                                    onChange={(e) => setAiConfig({...aiConfig, creationApiKey: e.target.value})}
+                                    className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-blue-500 outline-none font-mono"
+                                    placeholder="sk-..."
+                                  />
+                              </div>
                           </div>
                       </div>
 
@@ -1988,6 +2001,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                       <option value="midjourney-v6">Midjourney v6</option>
                                       <option value="dall-e-3">DALL-E 3</option>
                                   </select>
+                              </div>
+                               <div className="md:col-span-2">
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Visual API Key</label>
+                                  <input 
+                                    type="password"
+                                    value={aiConfig.imageApiKey}
+                                    onChange={(e) => setAiConfig({...aiConfig, imageApiKey: e.target.value})}
+                                    className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-purple-500 outline-none font-mono"
+                                    placeholder="sk-..."
+                                  />
                               </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

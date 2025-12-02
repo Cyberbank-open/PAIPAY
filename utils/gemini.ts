@@ -1,11 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Use process.env.API_KEY as per guidelines.
-// Added check to ensure process exists before access to prevent browser crashes if polyfill is missing.
-const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
+// Helper to get the AI client dynamically
+// Priority: Specific API Key passed in argument > process.env.API_KEY
+const getAiClient = (specificApiKey?: string) => {
+  const defaultKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
+  const finalKey = specificApiKey || defaultKey;
 
-// Initialize AI client only if key is present (static initialization)
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+  if (!finalKey) return null;
+  return new GoogleGenAI({ apiKey: finalKey });
+};
 
 export interface GeneratedArticle {
   title: string;
@@ -83,9 +86,12 @@ export const generateArticleContent = async (
   category: string,
   stream: 'market' | 'notice',
   length: 'short' | 'medium' | 'long',
-  modelName: string = "gemini-2.5-flash"
+  modelName: string = "gemini-2.5-flash",
+  apiKey?: string // Optional dynamic API key
 ): Promise<GeneratedArticle | null> => {
   
+  const ai = getAiClient(apiKey);
+
   if (!ai) {
     console.warn("⚠️ Simulation Mode: API Key missing. Returning mock AI response.");
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -182,8 +188,12 @@ export const generateArticleContent = async (
 export const translateText = async (
     text: string,
     targetLanguage: string,
-    modelName: string = "gemini-2.5-flash-lite-latest"
+    modelName: string = "gemini-2.5-flash-lite-latest",
+    apiKey?: string // Optional dynamic API key
 ): Promise<string> => {
+    
+    const ai = getAiClient(apiKey);
+
     if (!ai) {
         return `[Mock Trans] ${text.substring(0, 50)}... (${targetLanguage})`;
     }
@@ -207,9 +217,12 @@ export const translateText = async (
 
 export const generateVideoContent = async (
   prompt: string,
-  aspectRatio: '16:9' | '9:16'
+  aspectRatio: '16:9' | '9:16',
+  apiKey?: string // Optional dynamic API key
 ): Promise<string | null> => {
-  const currentKey = process.env.API_KEY;
+  
+  // Video logic specifically often needs a paid key, so we strictly check
+  const currentKey = apiKey || process.env.API_KEY;
   if (!currentKey) {
      throw new Error("API Key is missing. Please select a key.");
   }
