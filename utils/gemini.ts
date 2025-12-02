@@ -1,21 +1,18 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Helper to get the AI client dynamically
-// Priority: Specific API Key passed in argument > process.env.API_KEY
 const getAiClient = (specificApiKey?: string) => {
-  // 1. Try to use the specific key passed from Admin Dashboard Settings
   if (specificApiKey && specificApiKey.trim() !== '') {
     return new GoogleGenAI({ apiKey: specificApiKey });
   }
-
-  // 2. Fallback to the environment variable (Netlify/Vite)
-  // Ensure process exists to avoid browser crashes
-  const envKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
-  
-  if (envKey) {
-    return new GoogleGenAI({ apiKey: envKey });
+  try {
+    const envKey = process.env.API_KEY;
+    if (envKey && typeof envKey === 'string' && envKey.trim() !== '') {
+      return new GoogleGenAI({ apiKey: envKey });
+    }
+  } catch (e) {
+    console.warn("Failed to read process.env.API_KEY");
   }
-
   return null;
 };
 
@@ -38,29 +35,22 @@ export interface GeneratedArticle {
   };
 }
 
-// --- MOCK DATA GENERATOR FOR SIMULATION MODE ---
+// Mock generator for when no key is present
 const getMockArticle = (topic: string, lang: string, stream: 'market' | 'notice'): GeneratedArticle => {
   const isCN = lang === 'CN';
-  const prefix = stream === 'market' ? (isCN ? '【PAIPAY 市场洞察】' : '[PAIPAY Market Pulse]') : (isCN ? '【系统公告】' : '[System Notice]');
-  const suffix = isCN ? '<hr><p class="text-sm text-gray-500 italic">免责声明：本文仅供参考，不构成投资建议。</p>' : '<hr><p class="text-sm text-gray-500 italic">Disclaimer: This content is for informational purposes only.</p>';
-
   return {
-    title: isCN ? `深度解析: ${topic}` : `Deep Dive: ${topic}`,
+    title: isCN ? `[模拟] 深度解析: ${topic}` : `[SIM] Deep Dive: ${topic}`,
     poster_data: {
       headline: isCN ? "市场趋势分析" : "Market Trend",
-      subhead: isCN ? `${topic} 正在重塑支付格局` : `${topic} is reshaping payments`,
+      subhead: isCN ? `${topic} 重塑格局` : `${topic} reshaping payments`,
       body_highlight: isCN ? "全球清算 · 极速达" : "Global Clearing · Instant Settlement"
     },
     slug: "market-trend-2025",
-    meta_desc: isCN ? "PAIPAY 深度市场分析报告。" : "PAIPAY In-depth market analysis.",
-    content: `<p><strong>${prefix}</strong></p><p>${isCN ? '这是模拟模式生成的文章内容。请配置有效的 API Key 以生成真实内容。' : 'This is mock content generated in simulation mode. Please configure a valid API Key to generate real content.'}</p>${suffix}`,
-    tags: ["#Fintech", "#PAIPAY"],
-    image_prompt: `Futuristic abstract illustration of ${topic}, blue and white color scheme, isometric view, high tech, clean background.`,
-    social_drafts: {
-      twitter: `${topic} is trending! #PAIPAY`,
-      linkedin: `Latest insights on ${topic}. Read more at PAIPAY.`,
-      telegram: `📢 Update: ${topic}`
-    }
+    meta_desc: isCN ? "PAIPAY 深度市场分析报告（模拟数据）。" : "PAIPAY In-depth market analysis (Simulation).",
+    content: `<p><strong>${isCN ? '【模拟生成】' : '[Simulation Mode]'}</strong></p><p>Please configure your API Key in Settings to generate real content.</p>`,
+    tags: ["#Fintech", "#PAIPAY", "#Simulation"],
+    image_prompt: `Futuristic abstract illustration of ${topic}, blue and white color scheme.`,
+    social_drafts: { twitter: `[Sim] ${topic}`, linkedin: `[Sim] ${topic}`, telegram: `[Sim] ${topic}` }
   };
 };
 
@@ -72,44 +62,68 @@ export const generateArticleContent = async (
   stream: 'market' | 'notice',
   length: 'short' | 'medium' | 'long',
   modelName: string = "gemini-2.5-flash",
-  apiKey?: string // Optional dynamic API key from Admin Settings
+  apiKey?: string
 ): Promise<GeneratedArticle | null> => {
   
   const ai = getAiClient(apiKey);
 
   if (!ai) {
-    console.warn("⚠️ Simulation Mode: API Key missing. Returning mock AI response.");
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.warn("⚠️ Simulation Mode: API Key missing.");
+    await new Promise(resolve => setTimeout(resolve, 1000));
     return getMockArticle("Simulation Topic", language, stream);
   }
 
-  // Use the configured model
-  const prefix = stream === 'market' ? (language === 'CN' ? '【PAIPAY 市场洞察】' : '[PAIPAY Market Pulse]') : (language === 'CN' ? '【系统公告】' : '[System Notice]');
-
-  const systemInstruction = `You are an expert Fintech Editor for PAIPAY, a global clearing network. 
-  Your Tone: ${tone}.
-  Article Length: ${length} (Short: ~300 words, Medium: ~800 words, Long: ~1500 words).
-  Stream Type: ${stream} (Market Pulse vs System Notice).
-  Language: ${language}.
+  // --- STRICT TYPESETTING RULES ---
+  // This ensures the layout is always perfect depending on the length selected.
+  let layoutInstruction = "";
   
-  Mandatory Formatting Rules:
-  1. **Intro**: Start the HTML content with a paragraph containing the prefix "${prefix}".
-  2. **Outro**: End the HTML content with a horizontal rule <hr> and a standardized disclaimer in ${language}.
-  3. **Tags**: Generate 3-5 relevant tags (e.g., #DeFi, #Payments) and include them in the JSON 'tags' array, NOT in the HTML content.
-  4. **Structure**: Use perfect HTML structure. **CRITICAL**: Use <p> tags for paragraphs. Do NOT use simple line breaks. Ensure headers (<h2>, <h3>) have clear separation from text.
-  5. **Poster Data**: Extract key short texts for generating a poster image.
-  6. **Image Prompt**: Generate a detailed Midjourney/DALL-E prompt for an abstract, high-tech illustration suitable for this article. Style: Isometric, Blue/White, Fintech.
+  if (length === 'short') {
+    layoutInstruction = `
+      **STRICT HTML LAYOUT (SHORT)**:
+      1. Start immediately with a <strong>summary paragraph</strong> (approx 3 sentences).
+      2. Follow with a <ul> list containing exactly 3 <li> items highlighting key impacts.
+      3. Do NOT use <h2> or <h3> headers.
+      4. Keep it concise, punchy, and direct.
+    `;
+  } else if (length === 'medium') {
+    layoutInstruction = `
+      **STRICT HTML LAYOUT (STANDARD)**:
+      1. <h3>Executive Summary</h3>: One paragraph summarizing the core message.
+      2. <h3>Background</h3>: Two paragraphs explaining context.
+      3. <h3>Analysis</h3>: Three paragraphs of breakdown.
+      4. <ul> List: 4 bullet points of data/features.
+      5. <h3>Conclusion</h3>: One wrapping paragraph.
+      Use standard HTML tags: <h3>, <p>, <ul>, <li>.
+    `;
+  } else {
+    layoutInstruction = `
+      **STRICT HTML LAYOUT (LONG REPORT)**:
+      1. <h2>Abstract</h2>: A bold intro paragraph.
+      2. <h3>Market Context</h3>: Detailed background (2-3 paragraphs).
+      3. <h3>Technical Analysis</h3>: Deep dive content (4-5 paragraphs).
+      4. <h3>Data Insights</h3>: A detailed <ul> list with bolded keys (e.g., <li><strong>Metric:</strong> Value</li>).
+      5. <h3>Strategic Outlook</h3>: Future implications.
+      6. <h3>Summary</h3>: Final conclusion.
+    `;
+  }
 
-  Requirements:
-  1. Output must be valid JSON.
-  2. "content" must be rich HTML.
-  3. "social_drafts" should provide platform-specific copy (Twitter: short + hashtags, LinkedIn: professional, Telegram: bullet points).
+  const systemInstruction = `
+  Role: Expert Fintech Editor for PAIPAY.
+  Tone: ${tone}.
+  Language: ${language} (Simplified Chinese preferred if 'CN').
+  Stream: ${stream}.
+  
+  ${layoutInstruction}
+  
+  **Formatting Rules**:
+  1. Return ONLY valid JSON.
+  2. The "content" field must be pure HTML. 
+  3. Do NOT use Markdown symbols (like ## or **) inside the HTML content string. Use <b> or <strong> for bold.
+  4. "poster_data" must be very short for graphic design use.
+  5. "social_drafts" must be platform-native (Hashtags for Twitter, professional for LinkedIn).
   `;
 
-  const prompt = `Raw Source Material: 
-  "${rawSource}"
-  
-  Please generate the article structure.`;
+  const prompt = `Raw Source Material: "${rawSource}". Generate the article structure now.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -125,16 +139,16 @@ export const generateArticleContent = async (
             poster_data: {
                 type: Type.OBJECT,
                 properties: {
-                    headline: { type: Type.STRING, description: "Max 5 words, catchy" },
-                    subhead: { type: Type.STRING, description: "Max 12 words summary" },
-                    body_highlight: { type: Type.STRING, description: "Key stat or short quote" }
+                    headline: { type: Type.STRING },
+                    subhead: { type: Type.STRING },
+                    body_highlight: { type: Type.STRING }
                 }
             },
-            slug: { type: Type.STRING, description: "URL friendly slug" },
-            meta_desc: { type: Type.STRING, description: "SEO meta description, max 160 chars" },
-            content: { type: Type.STRING, description: "Full article body in HTML format" },
+            slug: { type: Type.STRING },
+            meta_desc: { type: Type.STRING },
+            content: { type: Type.STRING },
             tags: { type: Type.ARRAY, items: { type: Type.STRING } },
-            image_prompt: { type: Type.STRING, description: "Prompt for AI image generation" },
+            image_prompt: { type: Type.STRING },
             social_drafts: {
               type: Type.OBJECT,
               properties: {
@@ -150,88 +164,49 @@ export const generateArticleContent = async (
     });
 
     if (response.text) {
-      return JSON.parse(response.text) as GeneratedArticle;
+      let cleanText = response.text.trim();
+      if (cleanText.startsWith('```json')) cleanText = cleanText.replace(/^```json\n/, '').replace(/\n```$/, '');
+      else if (cleanText.startsWith('```')) cleanText = cleanText.replace(/^```\n/, '').replace(/\n```$/, '');
+      return JSON.parse(cleanText) as GeneratedArticle;
     }
     return null;
 
   } catch (error) {
     console.error("AI Generation Failed:", error);
-    // Fallback to mock if API call fails
-    return getMockArticle("Generation Error", language, stream);
+    return null;
   }
 };
 
-export const translateText = async (
-    text: string,
-    targetLanguage: string,
-    modelName: string = "gemini-2.5-flash-lite-latest",
-    apiKey?: string // Optional dynamic API key
-): Promise<string> => {
-    
+export const translateText = async (text: string, targetLanguage: string, modelName: string, apiKey?: string): Promise<string> => {
     const ai = getAiClient(apiKey);
-
-    if (!ai) {
-        return `[Mock Trans] ${text.substring(0, 50)}... (${targetLanguage})`;
-    }
-
-    const systemInstruction = `You are a professional translator for a Fintech company. Translate the text to ${targetLanguage}. Maintain tone and formatting. Return ONLY the translated text.`;
-
+    if (!ai) return text;
     try {
         const response = await ai.models.generateContent({
             model: modelName,
             contents: text,
-            config: {
-                systemInstruction: systemInstruction,
-            }
+            config: { systemInstruction: `Translate to ${targetLanguage}. Return ONLY text.` }
         });
         return response.text || text;
-    } catch (e) {
-        console.error("Translation failed", e);
-        return text;
-    }
+    } catch (e) { return text; }
 }
 
-export const generateVideoContent = async (
-  prompt: string,
-  aspectRatio: '16:9' | '9:16',
-  apiKey?: string // Optional dynamic API key
-): Promise<string | null> => {
-  
+export const generateVideoContent = async (prompt: string, aspectRatio: '16:9' | '9:16', apiKey?: string): Promise<string | null> => {
   const aiClient = getAiClient(apiKey);
-  
-  if (!aiClient) {
-     throw new Error("API Key is missing. Please select a key.");
-  }
-  
-  const model = 'veo-3.1-fast-generate-preview';
-
+  if (!aiClient) throw new Error("API Key missing");
   try {
-      console.log(`Starting Veo generation (${aspectRatio})...`);
       let operation = await aiClient.models.generateVideos({
-          model,
+          model: 'veo-3.1-fast-generate-preview',
           prompt,
-          config: {
-              numberOfVideos: 1,
-              resolution: '720p',
-              aspectRatio: aspectRatio
-          }
+          config: { numberOfVideos: 1, resolution: '720p', aspectRatio }
       });
-
       while (!operation.done) {
           await new Promise(r => setTimeout(r, 5000)); 
           operation = await aiClient.operations.getVideosOperation({ operation });
       }
-      
       const vid = operation.response?.generatedVideos?.[0]?.video;
-      // We must append the key to the URL for it to be accessible
-      if (vid?.uri) {
-          // Find which key was actually used to append it to the URL
-          const usedKey = apiKey || (typeof process !== 'undefined' && process.env ? process.env.API_KEY : '');
-          return `${vid.uri}&key=${usedKey}`;
-      }
-      return null;
+      return vid?.uri ? `${vid.uri}&key=${apiKey || process.env.API_KEY}` : null;
   } catch (error) {
-      console.error("Veo Generation Error:", error);
+      console.error("Veo Error:", error);
       throw error;
   }
 };
