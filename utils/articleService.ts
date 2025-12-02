@@ -1,5 +1,4 @@
-
-import { supabase } from './supabaseClient';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { Article } from '../components/LanguageContext';
 
 // Helper to convert Supabase row to App Article type
@@ -15,6 +14,12 @@ const mapRowToArticle = (row: any): Article => ({
 });
 
 export const fetchArticles = async (stream: 'market' | 'notice'): Promise<Article[]> => {
+  // If Supabase is not configured (e.g. env vars missing), return empty array immediately.
+  // This forces the UI to use the static fallback data defined in LanguageContext.
+  if (!isSupabaseConfigured) {
+    return [];
+  }
+
   try {
     const { data, error } = await supabase
       .from('articles')
@@ -23,18 +28,23 @@ export const fetchArticles = async (stream: 'market' | 'notice'): Promise<Articl
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error(`Error fetching ${stream} articles:`, error);
+      // Log the error message to avoid [object Object]
+      console.warn(`Error fetching ${stream} articles:`, error.message);
       return [];
     }
 
     return (data || []).map(mapRowToArticle);
-  } catch (err) {
-    console.error("Unexpected error fetching articles:", err);
+  } catch (err: any) {
+    console.warn("Unexpected error fetching articles:", err.message || err);
     return [];
   }
 };
 
 export const fetchArticleById = async (id: string): Promise<Article | null> => {
+  if (!isSupabaseConfigured) {
+    return null;
+  }
+
   try {
     // Try to fetch from Supabase assuming ID is numeric
     const numericId = parseInt(id);

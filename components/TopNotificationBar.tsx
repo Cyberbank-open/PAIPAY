@@ -66,8 +66,9 @@ const TopNotificationBar: React.FC<TopNotificationBarProps> = ({ onNavigate }) =
 
   const currentNotice = displayNotices[currentIndex];
   
-  // Check if current notice is dynamic (starts with [NEW]) to trigger flash
-  const isUrgent = currentNotice.text.startsWith('[NEW]');
+  // Requirement: System announcements must flash on the header.
+  // We treat all items in this specific notification bar as system notices that trigger the flash effect.
+  const isUrgent = true; 
 
   const handleBarClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -84,7 +85,7 @@ const TopNotificationBar: React.FC<TopNotificationBarProps> = ({ onNavigate }) =
           {/* Flashing Dot Animation for Urgent Notices */}
           <div className={`w-1.5 h-1.5 bg-[#22D3EE] rounded-full relative mr-2 ${isUrgent ? 'animate-ping' : 'animate-pulse-ring'}`}></div>
           <span className={`font-bold tracking-wider uppercase hidden sm:inline transition-colors ${isUrgent ? 'text-orange-400 animate-pulse' : 'text-cyan-400'}`}>
-              {isUrgent ? 'SYSTEM NOTICE' : 'ANNOUNCEMENT'}
+              SYSTEM NOTICE
           </span>
         </div>
 
