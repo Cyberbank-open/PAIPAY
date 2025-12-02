@@ -11,7 +11,8 @@ const getAiClient = (specificApiKey?: string) => {
       return new GoogleGenAI({ apiKey: envKey });
     }
   } catch (e) {
-    console.warn("Failed to read process.env.API_KEY");
+    // FIX: Removed process.env.API_KEY from string to prevent build-time replacement errors
+    console.warn("Failed to read API Key from environment");
   }
   return null;
 };
