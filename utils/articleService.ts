@@ -1,3 +1,4 @@
+
 import { supabase } from './supabaseClient';
 import { Article } from '../components/LanguageContext';
 
@@ -9,7 +10,8 @@ const mapRowToArticle = (row: any): Article => ({
   title: row.title,
   date: new Date(row.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
   summary: row.meta_desc || '',
-  content: row.content || ''
+  content: row.content || '',
+  image_url: row.image_url // Map image URL from DB
 });
 
 export const fetchArticles = async (stream: 'market' | 'notice'): Promise<Article[]> => {

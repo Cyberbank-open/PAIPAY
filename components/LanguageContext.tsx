@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export type Language = 'EN' | 'CN' | 'VN' | 'TH' | 'KH';
@@ -13,6 +14,7 @@ export interface Article {
   date: string;
   summary: string;
   content: string;
+  image_url?: string; // New: Support for generated posters/images
 }
 
 interface Translations {

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useLanguage, Article } from './LanguageContext';
 import { PageView } from '../App';
@@ -115,6 +116,24 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ id, type, onNavigate }) =
                 <span>3 min read</span>
              </div>
           </div>
+          
+          {/* Main Hero Image (If present) */}
+          {article.image_url && (
+             <div className="mb-10 rounded-2xl overflow-hidden shadow-lg shadow-gray-200 border border-gray-100">
+                {article.image_url.includes('.mp4') || article.image_url.includes('googleusercontent') ? (
+                   <video 
+                     src={article.image_url} 
+                     className="w-full h-auto max-h-[500px] object-cover" 
+                     controls 
+                     autoPlay 
+                     muted 
+                     loop 
+                   />
+                ) : (
+                   <img src={article.image_url} alt={article.title} className="w-full h-auto max-h-[500px] object-cover" />
+                )}
+             </div>
+          )}
 
           <article className="prose prose-blue prose-lg text-gray-600 leading-loose">
              <p className="font-medium text-gray-800 text-lg mb-8">{article.summary}</p>
@@ -139,7 +158,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ id, type, onNavigate }) =
                     <span>{isCopied ? 'Link Copied' : 'Share Article'}</span>
                 </button>
 
-                {/* 2. Upload Button */}
+                {/* 2. Upload Button (Optional manual attachment) */}
                 <input 
                     type="file" 
                     ref={fileInputRef} 

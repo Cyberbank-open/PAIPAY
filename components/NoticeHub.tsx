@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage, NoticeCategory, Article } from './LanguageContext';
 import { PageView } from '../App';
@@ -109,30 +110,43 @@ const NoticeHub: React.FC<NoticeHubProps> = ({ onNavigate }) => {
                             <div className={`w-2 h-2 rounded-full ${item.category === 'maintenance' ? 'bg-orange-400' : (item.category === 'feature' ? 'bg-green-500' : 'bg-blue-500')}`}></div>
                         </div>
                         
-                        <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 hover:shadow-xl hover:border-blue-200 hover:-translate-y-1 transition-all duration-300">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-                                <div className="flex gap-2">
-                                    <span className="inline-block px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase tracking-wide">
-                                        {t.insights.categories.notice[item.category as NoticeCategory] || item.category}
-                                    </span>
-                                    {item.tag && (
-                                        <span className={`inline-block px-2.5 py-1 text-[10px] font-bold rounded uppercase tracking-wide border ${item.category === 'maintenance' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
-                                            {item.tag}
-                                        </span>
-                                    )}
+                        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 hover:-translate-y-1 transition-all duration-300">
+                            {/* Rich Media Banner if present */}
+                            {item.image_url && (
+                                <div className="w-full h-32 md:h-48 relative overflow-hidden bg-gray-50 border-b border-gray-100">
+                                     {item.image_url.includes('.mp4') || item.image_url.includes('googleusercontent') ? (
+                                         <video src={item.image_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                     ) : (
+                                         <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                                     )}
                                 </div>
-                                <span className="text-xs text-gray-400 font-mono flex items-center gap-1">
-                                    <i className="ri-time-line"></i> {item.date}
-                                </span>
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                                {item.title}
-                            </h3>
-                            <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                                {item.summary}
-                            </p>
-                            <div className="flex items-center text-xs font-bold text-gray-400 group-hover:text-blue-600 transition-colors uppercase tracking-wider">
-                                {t.insights.read_more} <i className="ri-arrow-right-line ml-2"></i>
+                            )}
+
+                            <div className="p-6 md:p-8">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+                                    <div className="flex gap-2">
+                                        <span className="inline-block px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase tracking-wide">
+                                            {t.insights.categories.notice[item.category as NoticeCategory] || item.category}
+                                        </span>
+                                        {item.tag && (
+                                            <span className={`inline-block px-2.5 py-1 text-[10px] font-bold rounded uppercase tracking-wide border ${item.category === 'maintenance' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                                {item.tag}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="text-xs text-gray-400 font-mono flex items-center gap-1">
+                                        <i className="ri-time-line"></i> {item.date}
+                                    </span>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                                    {item.title}
+                                </h3>
+                                <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                                    {item.summary}
+                                </p>
+                                <div className="flex items-center text-xs font-bold text-gray-400 group-hover:text-blue-600 transition-colors uppercase tracking-wider">
+                                    {t.insights.read_more} <i className="ri-arrow-right-line ml-2"></i>
+                                </div>
                             </div>
                         </div>
                     </div>

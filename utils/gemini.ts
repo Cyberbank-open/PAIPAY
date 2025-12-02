@@ -1,25 +1,24 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Access the key directly so Vite's `define` plugin can perform the string replacement.
-// In the built code, this becomes: const apiKey = atob("...");
-const apiKey = process.env.API_KEY;
+// Use process.env.API_KEY as per guidelines.
+// Added check to ensure process exists before access to prevent browser crashes if polyfill is missing.
+const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
 
-// Initialize AI client only if key is present
+// Initialize AI client only if key is present (static initialization)
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export interface GeneratedArticle {
-  title: string; // Optimize for SEO
+  title: string;
   poster_data: {
-    headline: string; // Short punchy headline for poster
-    subhead: string; // 1 sentence summary
-    body_highlight: string; // Key stat or quote
+    headline: string;
+    subhead: string;
+    body_highlight: string;
   };
   slug: string;
   meta_desc: string;
   content: string; // HTML formatted content
-  tags: string[]; // Auto-generated tags
-  image_prompt: string; // Prompt for generating illustration
+  tags: string[];
+  image_prompt: string;
   social_drafts: {
     twitter: string;
     linkedin: string;
@@ -33,14 +32,12 @@ const getMockArticle = (topic: string, lang: string, stream: 'market' | 'notice'
   const prefix = stream === 'market' ? (isCN ? '【PAIPAY 市场洞察】' : '[PAIPAY Market Pulse]') : (isCN ? '【系统公告】' : '[System Notice]');
   const suffix = isCN ? '<hr><p class="text-sm text-gray-500 italic">免责声明：本文仅供参考，不构成投资建议。</p>' : '<hr><p class="text-sm text-gray-500 italic">Disclaimer: This content is for informational purposes only.</p>';
 
-  // Mock content generation based on stream with BETTER HTML STRUCTURE (Paragraphs)
-  let title, content, headline, subhead;
+  let title, headline, subhead, content;
   
   if (stream === 'market') {
     title = isCN ? `深度解析: ${topic} 对全球结算网络的影响` : `Deep Dive: Impact of ${topic} on Global Settlement`;
     headline = isCN ? "市场趋势分析" : "Market Trend";
     subhead = isCN ? `${topic} 正在重塑跨境支付格局` : `${topic} is reshaping cross-border payments`;
-    // Improved HTML with separate paragraphs
     content = isCN 
       ? `<p><strong>${prefix}</strong></p><p>随着 <strong>${topic}</strong> 的持续发酵，全球金融市场正在经历新一轮的波动。作为下一代清算网络，PAIPAY 密切关注这一趋势。</p><h2>市场背景</h2><p>近期数据显示，链上交易量增长显著，机构入场速度加快。在此背景下，传统的跨境支付链路显得愈发低效。</p><h3>关键数据分析</h3><ul><li>链上交易量增长 15%</li><li>机构入场速度加快</li><li>合规门槛进一步提升</li></ul><p>我们的混合架构正是为了解决这一痛点而生。通过整合 Layer 2 技术，我们将结算成本降低了 90%。</p><h3>未来展望</h3><p>预计在 Q3 季度，我们将看到更多基于区块链的即时结算应用落地。建议企业客户提前布局，优化资金管理策略。</p>${suffix}`
       : `<p><strong>${prefix}</strong></p><p>As <strong>${topic}</strong> continues to evolve, global financial markets are experiencing a new wave of volatility. As a next-gen clearing network, PAIPAY is monitoring this trend closely.</p><h2>Market Context</h2><p>Recent data indicates a significant increase in on-chain transaction volume and accelerated institutional entry. In this context, traditional cross-border payment rails are becoming increasingly inefficient.</p><h3>Key Data Analysis</h3><ul><li>On-chain volume up 15%</li><li>Institutional adoption accelerating</li><li>Compliance standards tightening</li></ul><p>Our hybrid architecture was designed to solve this exact pain point. By integrating Layer 2 technology, we have reduced settlement costs by 90%.</p><h3>Outlook</h3><p>We expect to see more blockchain-based real-time settlement applications launching in Q3.</p>${suffix}`;
@@ -85,17 +82,14 @@ export const generateArticleContent = async (
   language: string,
   category: string,
   stream: 'market' | 'notice',
-  length: 'short' | 'medium' | 'long'
+  length: 'short' | 'medium' | 'long',
+  modelName: string = "gemini-2.5-flash"
 ): Promise<GeneratedArticle | null> => {
   
-  // --- SIMULATION MODE CHECK ---
   if (!ai) {
     console.warn("⚠️ Simulation Mode: API Key missing. Returning mock AI response.");
-    // Simulate network delay for realism
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Extract a rough topic from rawSource or use default
-    // If rawSource looks like OCR result, extract the title line
     let topic = "Crypto Trend";
     const titleMatch = rawSource.match(/(?:标题|TITLE)[:：]\s*(.*)/);
     if (titleMatch) {
@@ -108,9 +102,7 @@ export const generateArticleContent = async (
     return getMockArticle(topic || "Crypto Trend", language, stream);
   }
 
-  // --- REAL AI MODE ---
-  const modelId = "gemini-2.5-flash"; 
-
+  // Use the configured model
   const prefix = stream === 'market' ? (language === 'CN' ? '【PAIPAY 市场洞察】' : '[PAIPAY Market Pulse]') : (language === 'CN' ? '【系统公告】' : '[System Notice]');
 
   const systemInstruction = `You are an expert Fintech Editor for PAIPAY, a global clearing network. 
@@ -140,7 +132,7 @@ export const generateArticleContent = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: modelId,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction: systemInstruction,
@@ -183,7 +175,72 @@ export const generateArticleContent = async (
 
   } catch (error) {
     console.error("AI Generation Failed:", error);
-    // Fallback to mock if API call fails (e.g. quota exceeded)
     return getMockArticle("Market Update", language, stream);
+  }
+};
+
+export const translateText = async (
+    text: string,
+    targetLanguage: string,
+    modelName: string = "gemini-2.5-flash-lite-latest"
+): Promise<string> => {
+    if (!ai) {
+        return `[Mock Trans] ${text.substring(0, 50)}... (${targetLanguage})`;
+    }
+
+    const systemInstruction = `You are a professional translator for a Fintech company. Translate the text to ${targetLanguage}. Maintain tone and formatting. Return ONLY the translated text.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: modelName,
+            contents: text,
+            config: {
+                systemInstruction: systemInstruction,
+            }
+        });
+        return response.text || text;
+    } catch (e) {
+        console.error("Translation failed", e);
+        return text;
+    }
+}
+
+export const generateVideoContent = async (
+  prompt: string,
+  aspectRatio: '16:9' | '9:16'
+): Promise<string | null> => {
+  const currentKey = process.env.API_KEY;
+  if (!currentKey) {
+     throw new Error("API Key is missing. Please select a key.");
+  }
+  
+  const aiClient = new GoogleGenAI({ apiKey: currentKey });
+  const model = 'veo-3.1-fast-generate-preview';
+
+  try {
+      console.log(`Starting Veo generation (${aspectRatio})...`);
+      let operation = await aiClient.models.generateVideos({
+          model,
+          prompt,
+          config: {
+              numberOfVideos: 1,
+              resolution: '720p',
+              aspectRatio: aspectRatio
+          }
+      });
+
+      while (!operation.done) {
+          await new Promise(r => setTimeout(r, 5000)); 
+          operation = await aiClient.operations.getVideosOperation({ operation });
+      }
+      
+      const vid = operation.response?.generatedVideos?.[0]?.video;
+      if (vid?.uri) {
+          return `${vid.uri}&key=${currentKey}`;
+      }
+      return null;
+  } catch (error) {
+      console.error("Veo Generation Error:", error);
+      throw error;
   }
 };

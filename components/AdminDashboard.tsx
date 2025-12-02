@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { generateArticleContent } from '../utils/gemini';
+import { generateArticleContent, generateVideoContent, translateText } from '../utils/gemini';
 import { supabase, isSupabaseConfigured } from '../utils/supabaseClient';
 
 interface AdminDashboardProps {
@@ -14,11 +14,15 @@ type ContentStream = 'market' | 'notice';
 type PosterRatio = '1:1' | '16:9' | '9:16';
 type ArticleLength = 'short' | 'medium' | 'long';
 type InputSourceType = 'text' | 'url' | 'image';
+type AssetMode = 'template' | 'ai_gen' | 'veo';
+
+// --- Visual Style Constants ---
+const PAIPAY_VISUAL_STYLE = "PAIPAY Brand Style: Futuristic Fintech, 3D Isometric View, Clean White Background, Deep Blue (#2563EB) and Cyan (#06B6D4) Accents, High-end Commercial Render, Unreal Engine 5 Style, 8k Resolution, Minimalist Tech.";
 
 // --- Types ---
 interface SocialChannel {
     id: string;
-    platform: 'twitter' | 'facebook' | 'telegram' | 'wechat' | 'linkedin' | 'instagram' | 'tiktok';
+    platform: 'twitter' | 'facebook' | 'telegram' | 'wechat' | 'linkedin' | 'instagram' | 'tiktok' | 'web';
     name: string;
     group: 'Global' | 'China' | 'Vietnam' | 'Thailand' | 'Cambodia';
     icon: string;
@@ -27,6 +31,16 @@ interface SocialChannel {
     preferred_ratio: PosterRatio;
     followers?: string;
     last_sync?: string;
+}
+
+interface DataSource {
+    id: number;
+    name: string;
+    type: 'RSS' | 'API' | 'Scraper' | 'Stream' | 'Webhook';
+    status: 'active' | 'paused';
+    lastSync: string;
+    frequency: string;
+    endpoint: string;
 }
 
 interface Notice {
@@ -48,10 +62,13 @@ interface Notice {
     raw_source?: string;
     custom_instruction?: string; 
     generated_image?: string; 
-    image_prompt?: string; // New field for AI Image prompt
+    generated_video?: string; // New: Veo Output
+    image_prompt?: string; 
     poster_template_id?: string;
     social_drafts?: Record<string, string>;
     tags?: string[];
+    created_at?: string;
+    image_url?: string;
 }
 
 interface TrendingTopic {
@@ -68,43 +85,50 @@ interface PosterTemplate {
     type: 'system' | 'market';
     previewColor: string;
     icon: string;
-    label_en: string; // Added label for poster rendering
+    label_en: string; 
 }
 
 interface BrandConfig {
-    // Visual Identity
     primaryColor: string;
     secondaryColor: string;
+    accentColor: string;
     fontFamily: string;
-    logoUrl: string; // Base64 or URL
+    logoUrl: string;
     watermark: boolean;
-    
-    // Strategic Identity (New)
     companyName: string;
     slogan: string;
     vision: string;
     mission: string;
-    
-    // Tone & Voice
     tone: string;
-    keywords: string[]; // Key terminology to reinforce
+    keywords: string[];
 }
 
 interface AIConfig {
-    textProvider: 'gemini' | 'openai' | 'anthropic';
-    textModel: string;
-    textApiKey: string;
+    // Content Creation (High IQ)
+    creationProvider: 'gemini' | 'openai' | 'anthropic';
+    creationModel: string;
+    creationApiKey: string;
     
-    imageProvider: 'midjourney' | 'dalle' | 'stability';
+    // Translation (Cost Effective)
+    translationProvider: 'gemini' | 'deepl';
+    translationModel: string;
+    
+    // Visuals
+    imageProvider: 'midjourney' | 'dalle' | 'imagen';
     imageModel: string;
     imageApiKey: string;
     
+    // Video
+    videoProvider: 'veo';
+    videoModel: string;
+    
+    // General
     temperature: number;
     maxTokens: number;
     isSaving: boolean;
 }
 
-// --- Templates Configuration (Refined) ---
+// --- Templates Configuration ---
 const SYSTEM_TEMPLATES: PosterTemplate[] = [
     { id: 'sys_partnership', name: '合作宣言', label_en: 'PARTNERSHIP', type: 'system', previewColor: 'bg-gradient-to-br from-yellow-100 to-blue-100', icon: 'ri-hand-coin-line' },
     { id: 'sys_update', name: 'APP更新', label_en: 'NEW UPDATE', type: 'system', previewColor: 'bg-gray-50 border border-gray-200', icon: 'ri-smartphone-line' },
@@ -228,48 +252,62 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [isMobile, setIsMobile] = useState(false);
 
   // --- SETTINGS STATE ---
-  // Brand Configuration State (Global)
   const [brandConfig, setBrandConfig] = useState<BrandConfig>({
-      primaryColor: '#2563EB', // Blue-600
-      secondaryColor: '#0F172A', // Slate-900
+      primaryColor: '#2563EB', 
+      secondaryColor: '#0F172A', 
+      accentColor: '#06B6D4',
       fontFamily: 'Inter',
       logoUrl: '',
       watermark: true,
-      
       companyName: 'PAIPAY',
       slogan: 'Next Gen Global Clearing Network',
       vision: 'Building the seamless financial layer for the digital economy.',
       mission: 'To democratize access to institutional-grade payment rails.',
-      
       tone: 'Professional, Authoritative, Insightful',
       keywords: ['Fintech', 'Blockchain', 'Settlement', 'Global', 'Compliance']
   });
   
-  // AI Engine Configuration
   const [aiConfig, setAiConfig] = useState<AIConfig>({
-      textProvider: 'gemini',
-      textModel: 'gemini-2.5-flash',
-      textApiKey: '', // Separate key for text
-
+      // Creation (High Quality)
+      creationProvider: 'gemini',
+      creationModel: 'gemini-3-pro-preview',
+      creationApiKey: '',
+      
+      // Translation (High Speed/Low Cost)
+      translationProvider: 'gemini',
+      translationModel: 'gemini-2.5-flash-lite-latest',
+      
+      // Visuals
       imageProvider: 'midjourney',
       imageModel: 'midjourney-v6',
-      imageApiKey: '', // Separate key for images
+      imageApiKey: '',
       
+      // Video
+      videoProvider: 'veo',
+      videoModel: 'veo-3.1-fast-generate-preview',
+      
+      // General
       temperature: 0.7,
       maxTokens: 2048,
       isSaving: false
   });
 
-  // Data Sources Configuration
-  const [dataSources, setDataSources] = useState([
-      { id: 1, name: 'Bloomberg Crypto RSS', type: 'RSS', status: 'active', lastSync: '10 mins ago' },
-      { id: 2, name: 'CoinGecko API', type: 'API', status: 'active', lastSync: '1 min ago' },
-      { id: 3, name: 'Google Trends (Finance)', type: 'Scraper', status: 'active', lastSync: '1 hour ago' },
-      { id: 4, name: 'Twitter Sentiment Firehose', type: 'Stream', status: 'paused', lastSync: '2 days ago' },
-      { id: 5, name: 'Internal Jira (DevOps)', type: 'Webhook', status: 'active', lastSync: 'Live' }
+  const [dataSources, setDataSources] = useState<DataSource[]>([
+      { id: 1, name: 'Bloomberg Crypto RSS', type: 'RSS', status: 'active', lastSync: '10 mins ago', frequency: '1h', endpoint: 'https://rss.bloomberg.com/crypto' },
+      { id: 2, name: 'CoinGecko API', type: 'API', status: 'active', lastSync: '1 min ago', frequency: '15m', endpoint: 'https://api.coingecko.com/v3/global' },
+      { id: 3, name: 'Google Trends (Finance)', type: 'Scraper', status: 'active', lastSync: '1 hour ago', frequency: '6h', endpoint: 'trends.google.com' },
+      { id: 4, name: 'Twitter Sentiment Firehose', type: 'Stream', status: 'paused', lastSync: '2 days ago', frequency: 'Real-time', endpoint: 'wss://firehose.twitter.com' },
+      { id: 5, name: 'Internal Jira (DevOps)', type: 'Webhook', status: 'active', lastSync: 'Live', frequency: 'Real-time', endpoint: 'https://hooks.paipay.com/jira/v2' }
   ]);
 
-  // Social Matrix State (Now integrated into Settings)
+  const [isAddSourceModalOpen, setIsAddSourceModalOpen] = useState(false);
+  const [newSource, setNewSource] = useState<Partial<DataSource>>({
+      name: '',
+      type: 'RSS',
+      endpoint: '',
+      frequency: '1h'
+  });
+
   const [socialChannels, setSocialChannels] = useState<SocialChannel[]>([
       { id: 'wechat_cn', platform: 'wechat', name: 'WeChat OA', group: 'China', icon: 'ri-wechat-fill', connected: true, lang_code: 'CN', preferred_ratio: '9:16', followers: '45.2K', last_sync: 'Active' },
       { id: 'x_cn', platform: 'twitter', name: 'X (中文)', group: 'China', icon: 'ri-twitter-x-line', connected: true, lang_code: 'CN', preferred_ratio: '16:9', followers: '12.8K', last_sync: 'Active' },
@@ -278,7 +316,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       { id: 'fb_vn', platform: 'facebook', name: 'Facebook (VN)', group: 'Vietnam', icon: 'ri-facebook-fill', connected: false, lang_code: 'VN', preferred_ratio: '1:1', followers: '-', last_sync: 'Inactive' },
   ]);
   
-  // Add Channel Modal State
   const [isAddChannelModalOpen, setIsAddChannelModalOpen] = useState(false);
   const [newChannel, setNewChannel] = useState<Partial<SocialChannel>>({
       platform: 'twitter',
@@ -287,28 +324,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       preferred_ratio: '16:9'
   });
   
-  // Data States for Studio
   const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>(trendingTopicsRaw);
-  
-  // Market Pulse Config (Local to Studio view, but data comes from "Data Sources")
-  const [pulseConfig, setPulseConfig] = useState({
-      keywords: '',
-      isConfigOpen: false
-  });
+  const [pulseConfig, setPulseConfig] = useState({ keywords: '', isConfigOpen: false });
 
   // Canvas Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
-  // Poster State
+  // Poster/Assets State
   const [posterText, setPosterText] = useState({
       headline: '',
       subhead: '',
       body: '',
       footer: '#PAIPAY'
   });
-  const [assetMode, setAssetMode] = useState<'template' | 'ai_gen'>('template');
+  const [assetMode, setAssetMode] = useState<AssetMode>('template');
   const [aiImageLoading, setAiImageLoading] = useState(false);
-  const [previewRatio, setPreviewRatio] = useState<PosterRatio>('1:1'); // Default preview ratio
+  const [veoLoading, setVeoLoading] = useState(false);
+  const [previewRatio, setPreviewRatio] = useState<PosterRatio>('1:1'); 
 
   // Content Studio State
   const [selectedChannels, setSelectedChannels] = useState<Set<string>>(new Set(['wechat_cn', 'x_cn']));
@@ -328,7 +360,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       stream: 'market',
       category: 'Crypto Trends',
       tag: 'TREND',
-      language: 'CN', // Default Chinese
+      language: 'CN', 
       social_drafts: {},
       tags: [],
       status: 'Draft',
@@ -339,7 +371,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiStep, setAiStep] = useState(''); 
 
-  // Resize Handler for Mobile Detection
+  // --- CMS STATE (Notices Module) ---
+  const [cmsArticles, setCmsArticles] = useState<Notice[]>([]);
+  const [cmsLoading, setCmsLoading] = useState(false);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -347,7 +382,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // User Fetching
   useEffect(() => {
     let isMounted = true;
     const getUser = async () => {
@@ -367,24 +401,54 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     return () => { isMounted = false; };
   }, []);
 
-  // --- Filter Logic for Market Pulse ---
+  // Fetch articles when tab changes to 'notices'
+  useEffect(() => {
+    if (activeTab === 'notices') {
+        const fetchCmsData = async () => {
+            setCmsLoading(true);
+            try {
+                if (isSupabaseConfigured) {
+                    const { data, error } = await supabase
+                        .from('articles')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    
+                    if (data) {
+                        const mapped = data.map((item: any) => ({
+                            ...item,
+                            status: 'Published',
+                            date: new Date(item.created_at).toLocaleDateString(),
+                            workflow_step: 'summary'
+                        }));
+                        setCmsArticles(mapped);
+                    }
+                } else {
+                    // Simulation Data
+                    setCmsArticles([]);
+                }
+            } catch (e) {
+                console.error("CMS Fetch Error", e);
+            } finally {
+                setCmsLoading(false);
+            }
+        };
+        fetchCmsData();
+    }
+  }, [activeTab]);
+
   useEffect(() => {
       if (stream === 'market') {
-          // Filter out internal system stuff
           let filtered = trendingTopicsRaw.filter(t => t.source !== 'Internal System' && t.source !== 'DevOps');
-          
           if (pulseConfig.keywords) {
               const kws = pulseConfig.keywords.toLowerCase().split(',').map(k => k.trim());
               filtered = filtered.filter(t => kws.some(k => t.title.toLowerCase().includes(k) || t.desc.toLowerCase().includes(k)));
           }
           setTrendingTopics(filtered);
       } else {
-          // System Notice Stream - Show internal topics
           setTrendingTopics(trendingTopicsRaw.filter(t => t.source === 'Internal System' || t.source === 'DevOps'));
       }
   }, [stream, pulseConfig.keywords]);
 
-  // Update selected channels based on Article Language
   useEffect(() => {
       const newSelection = new Set<string>();
       socialChannels.forEach(ch => {
@@ -400,10 +464,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       }
   }, [currentArticle.language, socialChannels]);
 
-
   const t = {
     CN: {
-      sidebar: { brand: 'PAIPAY 中控', launchpad: '启动清单', studio: '内容工坊', notices: '内容档案', reports: '决策情报', team: '团队管理', settings: '系统配置', user: '管理员', logout: '登出' },
+      sidebar: { brand: 'PAIPAY 中控', launchpad: '启动清单', studio: '内容工坊', notices: '内容管理 (CMS)', reports: '决策情报', team: '团队管理', settings: '系统配置', user: '管理员', logout: '登出' },
       studio: { 
           title: '智能内容工坊 v3.0', 
           subtitle: '全链路营销中台', 
@@ -429,19 +492,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   const navigateToSettings = () => {
       setActiveTab('settings');
-      setActiveSettingsTab('ai'); // Default to AI tab
+      setActiveSettingsTab('ai'); 
       showNotification('跳转至系统配置页面', 'info');
   };
 
   const handleSourceImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
           showNotification('正在识别海报内容...', 'loading');
-          
           setTimeout(() => {
               const mockExtractedText = stream === 'market'
                  ? "(OCR 识别结果)\n来源：CoinTelegraph 截图\n标题：以太坊 ETF 获批概率提升至 75%\n内容摘要：彭博社分析师指出，SEC 态度出现软化，多个申请方已更新 S-1 表格。市场预计最早将于下周一公布结果。"
                  : "(OCR 识别结果)\n来源：内部邮件截图\n标题：关于 API v3.2 停机维护通知\n时间：2025年5月20日 02:00 UTC\n影响范围：所有充提币接口\n预计时长：2小时";
-              
               setCurrentArticle(prev => ({
                   ...prev,
                   raw_source: mockExtractedText
@@ -469,16 +530,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           return;
       }
       setAiGenerating(true);
-      setAiStep(`正在分析素材 (${aiConfig.textModel})...`); // Use config model
+      setAiStep(`正在分析素材 (${aiConfig.creationModel})...`); 
 
       try {
         const generatedData = await generateArticleContent(
           currentArticle.raw_source || '',
-          brandConfig.tone, // Use config tone
+          brandConfig.tone, 
           currentArticle.language || 'CN',
           currentArticle.category || 'General',
           stream,
-          articleLength
+          articleLength,
+          aiConfig.creationModel // Pass the selected creation model
         );
 
         if (!generatedData) throw new Error("No data generated");
@@ -486,7 +548,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         const drafts: Record<string, string> = {};
         socialChannels.forEach(ch => {
           let text = '';
-          // Simple logic to distribute short vs long content based on platform
           if (['twitter', 'wechat'].includes(ch.platform)) text = generatedData.social_drafts.twitter; 
           else if (['linkedin', 'facebook'].includes(ch.platform)) text = generatedData.social_drafts.linkedin;
           else if (ch.platform === 'telegram') text = generatedData.social_drafts.telegram;
@@ -495,6 +556,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           const hashtags = generatedData.tags.join(' ');
           drafts[ch.id] = `${text}\n\n${hashtags}`;
         });
+
+        // Combine Brand Visual Style with Specific Image Prompt
+        // This ensures the style is enforced but the subject is relevant
+        const brandPromptPrefix = `${PAIPAY_VISUAL_STYLE} Subject:`;
+        const enhancedImagePrompt = `${brandPromptPrefix} ${generatedData.image_prompt}`;
 
         setCurrentArticle(prev => ({
           ...prev,
@@ -505,7 +571,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           social_drafts: drafts,
           tags: generatedData.tags,
           workflow_step: 'editor',
-          image_prompt: generatedData.image_prompt 
+          image_prompt: enhancedImagePrompt // Auto-filled with standardized prompt
         }));
         
         setPosterText({
@@ -529,7 +595,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           return;
       }
       setAiImageLoading(true);
-      showNotification(`AI 正在绘制插图 (${aiConfig.imageModel})...`, 'loading'); // Use config model
+      showNotification(`AI 正在绘制插图 (${aiConfig.imageModel})...`, 'loading'); 
       
       setTimeout(() => {
           const keywords = currentArticle.tags?.slice(0, 2).join(',') || 'fintech';
@@ -544,6 +610,76 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           setAiImageLoading(false);
           showNotification('插图绘制完成，已适配所有尺寸', 'success');
       }, 3000);
+  };
+
+  const handleVeoGeneration = async () => {
+      if (!currentArticle.image_prompt) {
+          showNotification('缺少视频提示词', 'error');
+          return;
+      }
+      
+      // Veo only supports 16:9 or 9:16
+      if (previewRatio === '1:1') {
+          showNotification('Veo 视频不支持 1:1 比例，请切换至 16:9 或 9:16', 'error');
+          return;
+      }
+
+      setVeoLoading(true);
+      showNotification(`正在连接 ${aiConfig.videoModel}...`, 'loading');
+      
+      try {
+          // 1. Check Key Selection
+          // Use type assertion to avoid TypeScript errors
+          const aistudio = (window as any).aistudio;
+          if (aistudio) {
+              let hasKey = await aistudio.hasSelectedApiKey();
+              if (!hasKey) {
+                  try {
+                      await aistudio.openSelectKey();
+                      hasKey = await aistudio.hasSelectedApiKey();
+                  } catch (e) {
+                      throw new Error("取消了 API Key 选择");
+                  }
+              }
+              
+              // Race condition check, retry check just in case
+              if (!hasKey) {
+                showNotification('请选择 Paid API Key 以使用 Veo 模型', 'info');
+                setVeoLoading(false);
+                return;
+              }
+          } else {
+             console.warn("window.aistudio not found, proceeding with env key (dev mode)");
+          }
+
+          // 2. Call Generation
+          // Combine prompt with motion specifics
+          const motionSuffix = " Cinematic lighting, high-tech motion graphics, 4k, slow smooth motion.";
+          const finalPrompt = currentArticle.image_prompt.includes('Cinematic') ? currentArticle.image_prompt : currentArticle.image_prompt + motionSuffix;
+
+          const videoUri = await generateVideoContent(
+              finalPrompt,
+              previewRatio as '16:9' | '9:16'
+          );
+
+          if (videoUri) {
+              setCurrentArticle(prev => ({
+                  ...prev,
+                  generated_video: videoUri,
+                  poster_template_id: 'veo_motion'
+              }));
+              showNotification('Veo 视频生成成功', 'success');
+          } else {
+              throw new Error("Video generation returned no URI");
+          }
+      } catch (err: any) {
+          console.error(err);
+          let msg = err.message || '生成失败';
+          if (msg.includes('Requested entity was not found')) msg = "API Key 无效或未启用计费，请重新选择";
+          showNotification(msg, 'error');
+      } finally {
+          setVeoLoading(false);
+      }
   };
 
   const handleTemplateSelect = (templateId: string) => {
@@ -739,17 +875,58 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           ctx.fillText(footerText, w/2, footerY);
 
           const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-          setCurrentArticle(prev => ({ ...prev, generated_image: dataUrl }));
+          // Only update if not in veo mode, to avoid overwriting video logic
+          if (assetMode === 'template') {
+             setCurrentArticle(prev => ({ ...prev, generated_image: dataUrl }));
+          }
           resolve();
       });
   }
 
   const handleApproveAndPublish = async () => {
-      showNotification('正在向全网节点分发...', 'loading');
-      setTimeout(() => {
-          handleWorkflowClick('summary');
-          showNotification('发布成功', 'success');
-      }, 2000);
+      // 1. Validate
+      if (!currentArticle.title || !currentArticle.content) {
+          showNotification('内容不完整，无法发布', 'error');
+          return;
+      }
+
+      showNotification('正在发布到官方网站...', 'loading');
+
+      // 2. Prepare Payload
+      const payload = {
+          stream: currentArticle.stream || 'market',
+          category: currentArticle.category || 'General',
+          tag: currentArticle.tag || 'UPDATE',
+          title: currentArticle.title,
+          meta_desc: currentArticle.meta_desc || '',
+          content: currentArticle.content,
+          // Prefer video if available, else image
+          image_url: currentArticle.generated_video || currentArticle.generated_image || '',
+          created_at: new Date().toISOString()
+      };
+
+      // 3. Insert to Supabase
+      if (isSupabaseConfigured) {
+          try {
+              const { error } = await supabase.from('articles').insert([payload]);
+              if (error) {
+                  console.error('Publish error:', error);
+                  showNotification(`发布失败: ${error.message}`, 'error');
+                  return;
+              }
+          } catch (e: any) {
+               showNotification(`系统错误: ${e.message}`, 'error');
+               return;
+          }
+      } else {
+          // Simulation mode
+          console.warn('Supabase not configured. Simulation publish.');
+          await new Promise(r => setTimeout(r, 1500));
+      }
+
+      // 4. Success UI
+      handleWorkflowClick('summary');
+      showNotification('发布成功！已同步至前端', 'success');
   };
 
   const handleWorkflowClick = (step: WorkflowStep) => {
@@ -762,7 +939,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       }
   }
 
-  const handleChannelToggle = (id: string) => {
+  const handleChannelToggle = async (id: string) => {
       const newSet = new Set(selectedChannels);
       if (newSet.has(id)) newSet.delete(id);
       else {
@@ -772,22 +949,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
               if (!currentArticle.social_drafts?.[id]) {
                  const baseDraft = String(Object.values(currentArticle.social_drafts || {})[0] || '');
                  const cleaned = baseDraft.replace(/\*\*/g, '');
-                 const translated = ch.lang_code === 'EN' 
-                    ? `[Auto-Trans] ${cleaned.substring(0, 50)}... (Translated to English)` 
-                    : `[Auto-Trans] ${cleaned.substring(0, 50)}... (Translated)`;
+                 
+                 showNotification(`正在翻译适配 ${ch.group} (${aiConfig.translationModel})...`, 'loading');
+                 
+                 const translated = await translateText(
+                     cleaned.substring(0, 300), // Translate first 300 chars for specific social draft
+                     ch.lang_code,
+                     aiConfig.translationModel
+                 );
                  
                  setCurrentArticle(prev => ({
                      ...prev,
                      social_drafts: { ...prev.social_drafts, [id]: translated }
                  }));
-                 showNotification(`已自动翻译适配 ${ch.group} 社区`, 'info');
+                 showNotification(`翻译完成`, 'success');
               }
           }
       }
       setSelectedChannels(newSet);
   }
 
-  // --- SETTINGS ACTIONS ---
   const saveAiConfig = () => {
       setAiConfig({ ...aiConfig, isSaving: true });
       setTimeout(() => {
@@ -801,6 +982,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           source.id === id ? { ...source, status: source.status === 'active' ? 'paused' : 'active' } : source
       ));
       showNotification('数据源状态已切换', 'info');
+  };
+
+  const handleAddSource = () => {
+      if (!newSource.name || !newSource.endpoint) {
+          showNotification('请填写源名称和接口地址', 'error');
+          return;
+      }
+      
+      const source: DataSource = {
+          id: Date.now(),
+          name: newSource.name,
+          type: newSource.type || 'RSS',
+          status: 'active',
+          lastSync: 'Pending',
+          frequency: newSource.frequency || '1h',
+          endpoint: newSource.endpoint
+      };
+
+      setDataSources([...dataSources, source]);
+      setIsAddSourceModalOpen(false);
+      setNewSource({ name: '', type: 'RSS', endpoint: '', frequency: '1h' });
+      showNotification('新数据源已添加成功', 'success');
   };
 
   const toggleSocialConnect = (id: string) => {
@@ -842,8 +1045,127 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       showNotification('新渠道已添加', 'success');
   }
 
+  // --- PREVIEW RENDERERS ---
+
+  const renderTwitterPreview = (text: string, media: string | undefined, isVideo: boolean) => (
+      <div className="bg-white rounded-xl border border-gray-100 p-4 max-w-[400px] mx-auto font-sans shadow-sm">
+          <div className="flex gap-3">
+               <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold flex-shrink-0">P</div>
+               <div className="flex-1 min-w-0">
+                   <div className="flex items-center gap-1">
+                       <span className="font-bold text-gray-900 text-[15px]">PAIPAY</span>
+                       <i className="ri-verified-badge-fill text-blue-400"></i>
+                       <span className="text-gray-500 text-[15px] truncate">@PAIPAY_Global · 14m</span>
+                   </div>
+                   <p className="text-[15px] text-gray-900 whitespace-pre-wrap mb-3 leading-normal">{text}</p>
+                   {media && (
+                       <div className="rounded-2xl overflow-hidden border border-gray-100 mb-3 relative aspect-video">
+                           {isVideo ? (
+                               <video src={media} className="w-full h-full object-cover" controls muted />
+                           ) : (
+                               <img src={media} className="w-full h-full object-cover" alt="Tweet Media" />
+                           )}
+                           {isVideo && <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded font-bold">0:15</div>}
+                       </div>
+                   )}
+                   <div className="flex justify-between text-gray-500 text-lg max-w-[90%]">
+                       <div className="flex items-center gap-1 group cursor-pointer hover:text-blue-500">
+                           <i className="ri-chat-1-line group-hover:bg-blue-50 rounded-full p-1.5 -ml-1.5 transition-colors"></i>
+                           <span className="text-xs">12</span>
+                       </div>
+                       <div className="flex items-center gap-1 group cursor-pointer hover:text-green-500">
+                           <i className="ri-repeat-2-line group-hover:bg-green-50 rounded-full p-1.5 -ml-1.5 transition-colors"></i>
+                           <span className="text-xs">48</span>
+                       </div>
+                       <div className="flex items-center gap-1 group cursor-pointer hover:text-red-500">
+                           <i className="ri-heart-line group-hover:bg-red-50 rounded-full p-1.5 -ml-1.5 transition-colors"></i>
+                           <span className="text-xs">196</span>
+                       </div>
+                       <div className="flex items-center gap-1 group cursor-pointer hover:text-blue-500">
+                           <i className="ri-bar-chart-line group-hover:bg-blue-50 rounded-full p-1.5 -ml-1.5 transition-colors"></i>
+                           <span className="text-xs">2.4K</span>
+                       </div>
+                       <div className="flex items-center gap-1 group cursor-pointer hover:text-blue-500">
+                            <i className="ri-share-line group-hover:bg-blue-50 rounded-full p-1.5 -ml-1.5 transition-colors"></i>
+                       </div>
+                   </div>
+               </div>
+          </div>
+      </div>
+  );
+
+  const renderFacebookPreview = (text: string, media: string | undefined, isVideo: boolean) => (
+      <div className="bg-white rounded-lg border border-gray-200 max-w-[400px] mx-auto font-sans overflow-hidden shadow-sm">
+          <div className="p-3 flex items-center gap-2">
+               <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm relative">
+                   P
+                   <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+               </div>
+               <div>
+                   <div className="font-bold text-gray-900 text-sm hover:underline cursor-pointer">PAIPAY Finance</div>
+                   <div className="text-xs text-gray-500 flex items-center gap-1 hover:underline cursor-pointer">2 mins · <i className="ri-earth-fill text-gray-400"></i></div>
+               </div>
+               <div className="ml-auto flex gap-3 text-gray-500">
+                   <i className="ri-more-fill text-xl cursor-pointer hover:bg-gray-100 rounded-full p-1"></i>
+               </div>
+          </div>
+          <p className="px-3 pb-3 text-sm text-gray-900 whitespace-pre-wrap leading-normal">{text}</p>
+          {media && (
+              <div className="w-full bg-gray-100 relative aspect-video">
+                  {isVideo ? (
+                       <video src={media} className="w-full h-full object-cover" controls muted />
+                  ) : (
+                       <img src={media} className="w-full h-full object-cover" alt="Post Media" />
+                  )}
+              </div>
+          )}
+          <div className="px-3 py-2 flex items-center justify-between border-b border-gray-100">
+               <div className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer hover:underline">
+                   <div className="flex -space-x-1">
+                       <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center border border-white z-10"><i className="ri-thumb-up-fill text-white text-[8px]"></i></span>
+                       <span className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center border border-white"><i className="ri-heart-fill text-white text-[8px]"></i></span>
+                   </div>
+                   <span>245</span>
+               </div>
+               <div className="text-xs text-gray-500 flex gap-2">
+                   <span className="cursor-pointer hover:underline">12 Comments</span>
+                   <span className="cursor-pointer hover:underline">5 Shares</span>
+               </div>
+          </div>
+          <div className="px-1 py-1 flex">
+               <button className="flex-1 py-1.5 text-gray-600 font-semibold text-sm hover:bg-gray-100 rounded flex items-center justify-center gap-2 transition-colors"><i className="ri-thumb-up-line text-lg"></i> Like</button>
+               <button className="flex-1 py-1.5 text-gray-600 font-semibold text-sm hover:bg-gray-100 rounded flex items-center justify-center gap-2 transition-colors"><i className="ri-chat-3-line text-lg"></i> Comment</button>
+               <button className="flex-1 py-1.5 text-gray-600 font-semibold text-sm hover:bg-gray-100 rounded flex items-center justify-center gap-2 transition-colors"><i className="ri-share-forward-line text-lg"></i> Share</button>
+          </div>
+      </div>
+  );
+
+  const renderTelegramPreview = (text: string, media: string | undefined, isVideo: boolean) => (
+      <div className="bg-[#8EBCDC]/20 p-4 rounded-xl max-w-[400px] mx-auto min-h-[300px]">
+          <div className="bg-white p-1.5 rounded-tl-xl rounded-tr-xl rounded-br-xl rounded-bl-sm shadow-sm max-w-[95%] relative overflow-hidden group cursor-pointer">
+               {media && (
+                   <div className="rounded-lg overflow-hidden mb-1.5 relative aspect-video">
+                       {isVideo ? (
+                           <video src={media} className="w-full h-full object-cover" controls muted />
+                       ) : (
+                           <img src={media} className="w-full h-full object-cover" alt="TG Media" />
+                       )}
+                   </div>
+               )}
+               <div className="px-2 pb-5 pt-1">
+                   <div className="text-sm font-bold text-[#2481CC] mb-1 hover:underline">PAIPAY Official</div>
+                   <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{text}</p>
+               </div>
+               <div className="absolute bottom-1.5 right-2 text-[11px] text-gray-400 flex items-center gap-1 bg-white/80 px-1 rounded-full">
+                   <span>10:42 AM</span>
+                   <i className="ri-eye-line text-gray-400 text-xs ml-1"></i>
+                   <span>1.2K</span>
+               </div>
+          </div>
+      </div>
+  );
+
   // --- RENDERERS ---
-  // ... (Strategies, Editor, Assets, Distribution, Studio renders remain same but use new BrandConfig where applicable) ...
 
   const renderStrategyInput = () => (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 animate-fade-in">
@@ -873,9 +1195,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                 </div>
                             </div>
                         ))}
-                        {trendingTopics.length === 0 && (
-                            <div className="text-center text-gray-400 py-10 text-xs">没有找到相关数据</div>
-                        )}
                     </div>
                 </div>
           </div>
@@ -1001,8 +1320,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       </div>
   );
 
-  // Editor, Assets, Distribution, Summary are mostly same structure, utilizing updated context.
-  // ... (Skipping full repetition of unmodified UI blocks for brevity, but they are part of the full file) ...
   const renderEditor = () => (
       <div className="bg-white p-4 md:p-8 rounded-2xl border border-gray-200 shadow-sm animate-fade-in">
            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-gray-100 pb-4 gap-4">
@@ -1084,7 +1401,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     <div className="space-y-6 order-2 lg:order-1">
                         <div className="flex p-1 bg-gray-100 rounded-xl">
                              <button 
-                                onClick={() => { setAssetMode('template'); setCurrentArticle(p => ({ ...p, generated_image: undefined })); }}
+                                onClick={() => { setAssetMode('template'); setCurrentArticle(p => ({ ...p, generated_image: undefined, generated_video: undefined })); }}
                                 className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${assetMode === 'template' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
                              >
                                  标准模版
@@ -1093,11 +1410,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                 onClick={() => setAssetMode('ai_gen')}
                                 className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${assetMode === 'ai_gen' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}
                              >
-                                 AI 绘图 (Auto-Draw)
+                                 AI 绘图
+                             </button>
+                             <button 
+                                onClick={() => setAssetMode('veo')}
+                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${assetMode === 'veo' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-500'}`}
+                             >
+                                 Veo 视频
                              </button>
                         </div>
 
-                        {assetMode === 'template' ? (
+                        {assetMode === 'template' && (
                             <>
                                 <div>
                                     <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">模版库 ({stream === 'market' ? '市场类' : '系统类'})</h4>
@@ -1130,22 +1453,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                     </div>
                                 </div>
                             </>
-                        ) : (
+                        )}
+
+                        {assetMode === 'ai_gen' && (
                             <div className="space-y-4">
                                 <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                                     <h4 className="text-xs font-bold text-blue-700 uppercase mb-2 flex items-center gap-2">
                                         <i className="ri-sparkling-fill"></i> AI 绘图引擎 ({aiConfig.imageModel})
                                     </h4>
                                     <p className="text-xs text-blue-600 mb-3 leading-relaxed">
-                                        基于文章语义自动生成配图。支持 1:1, 16:9, 9:16 全尺寸裁切。
+                                        系统已自动结合品牌 VI 规范与文章核心内容生成提示词。
                                     </p>
                                     <div className="mb-3">
-                                        <label className="block text-[10px] font-bold text-blue-400 uppercase mb-1">当前提示词 (Prompt)</label>
+                                        <label className="block text-[10px] font-bold text-blue-400 uppercase mb-1">自动合成提示词 (Auto-Prompt)</label>
                                         <textarea 
-                                            readOnly 
-                                            className="w-full p-2 rounded bg-white border border-blue-200 text-[10px] text-gray-500 h-20 resize-none"
-                                            value={currentArticle.image_prompt || "No prompt available"}
+                                            className="w-full p-2 rounded bg-white border border-blue-200 text-[10px] text-gray-600 h-28 resize-none leading-relaxed focus:outline-none focus:border-blue-400"
+                                            value={currentArticle.image_prompt || "提示词生成中..."}
+                                            onChange={(e) => setCurrentArticle({...currentArticle, image_prompt: e.target.value})}
                                         />
+                                        <div className="text-[10px] text-blue-400 mt-1 flex justify-end">已包含 PAIPAY 品牌视觉规范</div>
                                     </div>
                                     <button 
                                         onClick={handleAiImageGeneration}
@@ -1157,6 +1483,50 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                 </div>
                             </div>
                         )}
+
+                        {assetMode === 'veo' && (
+                             <div className="space-y-4">
+                                <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                                    <h4 className="text-xs font-bold text-purple-700 uppercase mb-2 flex items-center gap-2">
+                                        <i className="ri-movie-fill"></i> Google Veo Motion
+                                    </h4>
+                                    <p className="text-xs text-purple-600 mb-3 leading-relaxed">
+                                        基于品牌风格生成动态视频背景。
+                                    </p>
+                                    <div className="mb-3">
+                                        <label className="block text-[10px] font-bold text-purple-400 uppercase mb-1">自动合成提示词 (Auto-Prompt)</label>
+                                        <textarea 
+                                            className="w-full p-2 rounded bg-white border border-purple-200 text-[10px] text-gray-700 h-24 resize-none focus:outline-none focus:border-purple-400 leading-relaxed"
+                                            value={currentArticle.image_prompt}
+                                            onChange={(e) => setCurrentArticle({...currentArticle, image_prompt: e.target.value})}
+                                            placeholder="Cinematic shot..."
+                                        />
+                                        <div className="text-[10px] text-purple-400 mt-1 flex justify-end">已包含 PAIPAY 动态视觉规范</div>
+                                    </div>
+                                    
+                                    {/* API Billing Info / Action */}
+                                    <div className="text-[10px] text-purple-800 bg-white/50 p-2 rounded mb-3 border border-purple-100">
+                                       需付费 API Key。计费详情请查看 <a href="https://ai.google.dev/pricing" target="_blank" className="underline font-bold">Google AI Studio Pricing</a>。
+                                    </div>
+
+                                    <button 
+                                        onClick={handleVeoGeneration}
+                                        disabled={veoLoading}
+                                        className="w-full py-2.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 shadow-md shadow-purple-200 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {veoLoading ? (
+                                            <>
+                                                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                <span>生成中 (需1-2分钟)...</span>
+                                            </>
+                                        ) : (
+                                            '生成动态视频 (Veo)'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="pt-4 border-t border-gray-100 text-center">
                             <button 
                                 onClick={navigateToSettings}
@@ -1170,7 +1540,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     <div className="lg:col-span-2 flex flex-col h-full bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden relative order-1 lg:order-2">
                          <div className="absolute top-4 left-0 w-full flex justify-center z-10 pointer-events-none">
                             <div className="flex bg-white/90 backdrop-blur-md rounded-full p-1 border border-gray-200 shadow-sm pointer-events-auto overflow-x-auto max-w-[90%] md:max-w-none scrollbar-hide">
-                                <button onClick={() => setPreviewRatio('1:1')} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${previewRatio === '1:1' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}><i className="ri-instagram-line"></i> Square (1:1)</button>
+                                <button onClick={() => setPreviewRatio('1:1')} disabled={assetMode === 'veo'} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${previewRatio === '1:1' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed'}`}><i className="ri-instagram-line"></i> Square (1:1)</button>
                                 <button onClick={() => setPreviewRatio('16:9')} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${previewRatio === '16:9' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}><i className="ri-twitter-x-line"></i> Post (16:9)</button>
                                 <button onClick={() => setPreviewRatio('9:16')} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${previewRatio === '9:16' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}><i className="ri-smartphone-line"></i> Story (9:16)</button>
                             </div>
@@ -1181,14 +1551,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                 className="bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 relative flex items-center justify-center overflow-hidden"
                                 style={{ width: isMobile ? '100%' : (previewRatio === '16:9' ? '100%' : (previewRatio === '9:16' ? '45%' : '65%')), aspectRatio: previewRatio.replace(':', '/'), maxWidth: '100%', maxHeight: '100%' }}
                             >
-                                {aiImageLoading ? (
+                                {aiImageLoading || veoLoading ? (
                                     <div className="absolute inset-0 bg-gray-100 animate-pulse flex flex-col items-center justify-center">
                                         <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">AI Generating...</span>
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{veoLoading ? 'Rendering Video (Veo)...' : 'AI Generating...'}</span>
                                     </div>
                                 ) : (
                                     <>
-                                        {assetMode === 'ai_gen' && currentArticle.generated_image ? (
+                                        {assetMode === 'veo' && currentArticle.generated_video ? (
+                                             <div className="relative w-full h-full bg-black">
+                                                <video 
+                                                    src={currentArticle.generated_video} 
+                                                    className="w-full h-full object-cover" 
+                                                    controls 
+                                                    autoPlay 
+                                                    loop 
+                                                    muted
+                                                />
+                                                <div className="absolute bottom-4 right-4 bg-purple-600/80 text-white text-[10px] px-2 py-1 rounded backdrop-blur font-bold">VEO MOTION</div>
+                                             </div>
+                                        ) : assetMode === 'ai_gen' && currentArticle.generated_image ? (
                                              <div className="relative w-full h-full">
                                                 <img src={currentArticle.generated_image} alt="AI Generated" className="w-full h-full object-cover"/>
                                                 <div className="absolute bottom-4 right-4 bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur font-bold">AI ILLUSTRATION</div>
@@ -1221,19 +1603,45 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                    </button>
                </div>
            </div>
+           
+           {/* Primary Destination Section */}
+            <div className="mb-6 bg-gradient-to-r from-blue-50 to-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Primary Destination</h4>
+                <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-blue-200 shadow-sm">
+                    <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
+                        P
+                    </div>
+                    <div>
+                        <div className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            Official Website (PAIPAY.FINANCE)
+                            <span className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Ready</span>
+                        </div>
+                        <div className="text-xs text-gray-500">Will be published to the <strong>{currentArticle.stream === 'market' ? 'Market Hub' : 'Notices Hub'}</strong> section immediately.</div>
+                    </div>
+                    <div className="ml-auto">
+                        <div className="w-10 h-6 bg-blue-600 rounded-full relative shadow-inner cursor-not-allowed opacity-80">
+                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                <div className="space-y-4 order-2 lg:order-1">
-                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">分发矩阵 (按语言)</h4>
+                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Social Matrix (Secondary)</h4>
                    {socialChannels.filter(ch => ch.connected).map(ch => (
                         <div 
                             key={ch.id}
-                            onClick={() => handleChannelToggle(ch.id)}
+                            onClick={() => {
+                                handleChannelToggle(ch.id);
+                                if (!selectedChannels.has(ch.id)) setActiveSocialPreview(ch.id);
+                            }}
                             className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 relative overflow-hidden active:scale-[0.98] ${selectedChannels.has(ch.id) ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-white border-gray-200 opacity-60 hover:opacity-100'}`}
                         >
                             <i className={`${ch.icon} text-xl ${selectedChannels.has(ch.id) ? 'text-blue-600' : 'text-gray-400'}`}></i>
                             <div className="flex-1">
                                 <div className={`text-sm font-bold ${selectedChannels.has(ch.id) ? 'text-blue-900' : 'text-gray-700'}`}>{ch.name}</div>
-                                <div className="text-[10px] text-gray-400">{ch.group}</div>
+                                <div className="text-[10px] text-gray-400">{ch.group} Region • {ch.lang_code}</div>
                             </div>
                             {selectedChannels.has(ch.id) && ch.lang_code !== currentArticle.language && (
                                 <span className="text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded font-bold mr-2"><i className="ri-translate-2"></i> Auto</span>
@@ -1252,19 +1660,34 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                            return <button key={id} onClick={() => setActiveSocialPreview(id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${activeSocialPreview === id ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500'}`}>{ch.name}</button>
                        })}
                    </div>
-                   <div className="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-200 relative">
+                   
+                   {/* EDIT AREA */}
+                   <div className="mb-6 bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-200 relative">
                         <textarea 
-                            className="w-full bg-transparent text-sm text-gray-800 leading-relaxed outline-none resize-none h-40 font-medium"
+                            className="w-full bg-transparent text-sm text-gray-800 leading-relaxed outline-none resize-none h-32 font-medium"
                             value={(currentArticle.social_drafts?.[activeSocialPreview] || "").replace(/\*\*/g, '')}
                             onChange={(e) => setCurrentArticle(prev => ({...prev, social_drafts: {...prev.social_drafts, [activeSocialPreview]: e.target.value}}))}
                             placeholder="Social text here..."
                         ></textarea>
-                        {currentArticle.generated_image && (
-                            <div className="mt-4 rounded-lg overflow-hidden border border-gray-200 shadow-sm max-h-64 w-full object-cover relative group">
-                                <img src={currentArticle.generated_image} className="w-full h-auto object-cover" alt="Preview" />
-                                <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded backdrop-blur">Poster Attached</div>
-                            </div>
-                        )}
+                   </div>
+                   
+                   {/* REAL PREVIEW AREA */}
+                   <div className="border-t border-gray-100 pt-6">
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 text-center">Preview ({socialChannels.find(c => c.id === activeSocialPreview)?.name})</h4>
+                        
+                        {(() => {
+                            const platform = socialChannels.find(c => c.id === activeSocialPreview)?.platform;
+                            const text = (currentArticle.social_drafts?.[activeSocialPreview] || "").replace(/\*\*/g, '');
+                            const media = currentArticle.generated_video || currentArticle.generated_image;
+                            const isVideo = !!currentArticle.generated_video;
+
+                            if (platform === 'twitter') return renderTwitterPreview(text, media, isVideo);
+                            if (platform === 'facebook') return renderFacebookPreview(text, media, isVideo);
+                            if (platform === 'telegram') return renderTelegramPreview(text, media, isVideo);
+                            
+                            // Default fallback
+                            return renderTwitterPreview(text, media, isVideo);
+                        })()}
                    </div>
                </div>
            </div>
@@ -1317,8 +1740,106 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-lg shadow-green-200"><i className="ri-check-line text-5xl text-green-600"></i></div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">发布流程已完成</h2>
           <p className="text-gray-500 max-w-md mb-10">内容已成功推送到全网节点和所选社群矩阵。</p>
-          <button onClick={() => setCurrentArticle({ workflow_step: 'strategy', language: 'CN' })} className="px-8 py-3 bg-gray-900 text-white rounded-xl font-bold">创作新内容</button>
+          <div className="flex gap-4">
+            <button onClick={() => setActiveTab('notices')} className="px-8 py-3 bg-white text-gray-900 border border-gray-300 rounded-xl font-bold hover:border-gray-900">查看文章列表</button>
+            <button onClick={() => setCurrentArticle({ workflow_step: 'strategy', language: 'CN' })} className="px-8 py-3 bg-gray-900 text-white rounded-xl font-bold">创作新内容</button>
+          </div>
       </div>
+  );
+
+  const renderNotices = () => (
+    <div className="animate-fade-in space-y-6">
+        <div className="border-b border-gray-100 pb-6 flex justify-between items-center">
+            <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">内容管理 (CMS)</h2>
+                <p className="text-sm text-gray-500">管理官方网站展示的所有文章与公告。</p>
+            </div>
+            <button 
+                onClick={() => {
+                   setActiveTab('studio');
+                   setCurrentArticle({ workflow_step: 'strategy', language: 'CN' });
+                }}
+                className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-black transition-colors"
+            >
+                <i className="ri-add-line mr-1"></i> 发布新文章
+            </button>
+        </div>
+
+        {cmsLoading ? (
+            <div className="flex justify-center py-20">
+                <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+        ) : cmsArticles.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
+                <div className="text-gray-400 mb-2"><i className="ri-inbox-line text-4xl"></i></div>
+                <p className="text-gray-500 font-medium">暂无已发布文章</p>
+                <p className="text-xs text-gray-400 mt-1">前往内容工坊发布第一篇文章</p>
+            </div>
+        ) : (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-4">ID</th>
+                                <th className="px-6 py-4">文章标题</th>
+                                <th className="px-6 py-4">类型/标签</th>
+                                <th className="px-6 py-4">发布时间</th>
+                                <th className="px-6 py-4">状态</th>
+                                <th className="px-6 py-4 text-right">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 text-sm">
+                            {cmsArticles.map((article) => (
+                                <tr key={article.id} className="hover:bg-gray-50/50 transition-colors group">
+                                    <td className="px-6 py-4 text-gray-400 font-mono">#{article.id}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            {article.image_url ? (
+                                                <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100">
+                                                     {article.image_url.includes('.mp4') ? (
+                                                         <video src={article.image_url} className="w-full h-full object-cover" />
+                                                     ) : (
+                                                         <img src={article.image_url} alt="Cover" className="w-full h-full object-cover" />
+                                                     )}
+                                                </div>
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-300 flex-shrink-0">
+                                                    <i className="ri-image-line"></i>
+                                                </div>
+                                            )}
+                                            <div className="font-bold text-gray-900 line-clamp-1 max-w-[200px] group-hover:text-blue-600 transition-colors">
+                                                {article.title}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-xs font-bold text-gray-700">{article.stream === 'market' ? 'Market' : 'Notice'}</span>
+                                            <span className="text-[10px] text-gray-400 px-1.5 py-0.5 bg-gray-100 rounded self-start">{article.category}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                                        {new Date(article.created_at || '').toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600 border border-green-100">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                                            Published
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button className="text-gray-400 hover:text-blue-600 px-2 py-1 transition-colors"><i className="ri-eye-line"></i></button>
+                                        <button className="text-gray-400 hover:text-red-600 px-2 py-1 transition-colors"><i className="ri-delete-bin-line"></i></button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        )}
+    </div>
   );
 
   // --- NEW SETTINGS MODULE (Deep Navigation) ---
@@ -1354,27 +1875,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
           {/* Settings Main Content Area */}
           <div className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8 relative">
-              
-              {/* AI Config */}
               {activeSettingsTab === 'ai' && (
                   <div className="space-y-8 animate-fade-in">
                       <div className="border-b border-gray-100 pb-6">
                           <h2 className="text-xl font-bold text-gray-900 mb-1">AI 引擎配置 (Engine)</h2>
-                          <p className="text-sm text-gray-500">分别配置文本生成与图像生成的模型参数与密钥。</p>
+                          <p className="text-sm text-gray-500">分别配置文本创作、多语言翻译与视觉生成的模型参数。</p>
                       </div>
 
-                      {/* Text Model Section */}
-                      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                      {/* 1. Content Creation Engine */}
+                      <div className="bg-blue-50/50 rounded-xl p-6 border border-blue-100/50">
                           <div className="flex items-center gap-2 mb-4">
-                              <i className="ri-file-text-line text-blue-600 text-xl"></i>
-                              <h3 className="font-bold text-gray-900">文本大模型 (Text LLM)</h3>
+                              <i className="ri-edit-circle-line text-blue-600 text-xl"></i>
+                              <div>
+                                  <h3 className="font-bold text-gray-900 text-sm">内容创作引擎 (Content Creation)</h3>
+                                  <p className="text-[10px] text-gray-500">用于将原始素材转化为高质量的营销文案。</p>
+                              </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                               <div>
                                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Provider</label>
                                   <select 
-                                    value={aiConfig.textProvider}
-                                    onChange={(e) => setAiConfig({...aiConfig, textProvider: e.target.value as any})}
+                                    value={aiConfig.creationProvider}
+                                    onChange={(e) => setAiConfig({...aiConfig, creationProvider: e.target.value as any})}
                                     className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-blue-500 outline-none"
                                   >
                                       <option value="gemini">Google Gemini</option>
@@ -1383,93 +1905,109 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                   </select>
                               </div>
                               <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Model Version</label>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Model (High IQ)</label>
                                   <select 
-                                    value={aiConfig.textModel}
-                                    onChange={(e) => setAiConfig({...aiConfig, textModel: e.target.value})}
+                                    value={aiConfig.creationModel}
+                                    onChange={(e) => setAiConfig({...aiConfig, creationModel: e.target.value})}
                                     className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-blue-500 outline-none"
                                   >
+                                      <option value="gemini-3-pro-preview">Gemini 3.0 Pro (最新)</option>
                                       <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                                      <option value="gemini-2.0-pro">Gemini 2.0 Pro</option>
+                                      <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                                       <option value="gpt-4o">GPT-4o</option>
                                   </select>
                               </div>
                           </div>
-                          <div>
-                              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">API Key (Text)</label>
-                              <div className="relative">
-                                  <input 
-                                    type="password" 
-                                    value={aiConfig.textApiKey}
-                                    placeholder="sk-..."
-                                    onChange={(e) => setAiConfig({...aiConfig, textApiKey: e.target.value})}
-                                    className="w-full p-3 pl-10 bg-white rounded-xl text-sm font-mono border border-gray-200 focus:border-blue-500 outline-none"
-                                  />
-                                  <i className="ri-key-2-line absolute left-3 top-3.5 text-gray-400"></i>
-                              </div>
-                          </div>
                       </div>
 
-                      {/* Image Model Section */}
-                      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                      {/* 2. Translation Engine */}
+                      <div className="bg-green-50/50 rounded-xl p-6 border border-green-100/50">
                           <div className="flex items-center gap-2 mb-4">
-                              <i className="ri-image-line text-purple-600 text-xl"></i>
-                              <h3 className="font-bold text-gray-900">绘图模型 (Image Gen)</h3>
+                              <i className="ri-translate-2 text-green-600 text-xl"></i>
+                              <div>
+                                  <h3 className="font-bold text-gray-900 text-sm">多语言翻译引擎 (Translation)</h3>
+                                  <p className="text-[10px] text-gray-500">用于社群文案的本地化分发，推荐使用低成本高并发模型。</p>
+                              </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                               <div>
                                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Provider</label>
                                   <select 
+                                    value={aiConfig.translationProvider}
+                                    onChange={(e) => setAiConfig({...aiConfig, translationProvider: e.target.value as any})}
+                                    className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-green-500 outline-none"
+                                  >
+                                      <option value="gemini">Google Gemini</option>
+                                      <option value="deepl">DeepL</option>
+                                  </select>
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Model (Cost Effective)</label>
+                                  <select 
+                                    value={aiConfig.translationModel}
+                                    onChange={(e) => setAiConfig({...aiConfig, translationModel: e.target.value})}
+                                    className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-green-500 outline-none"
+                                  >
+                                      <option value="gemini-2.5-flash-lite-latest">Gemini 2.5 Flash Lite (推荐)</option>
+                                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                                  </select>
+                              </div>
+                          </div>
+                      </div>
+                      
+                      {/* 3. Visual Engine (Image & Video) */}
+                      <div className="bg-purple-50/50 rounded-xl p-6 border border-purple-100/50">
+                           <div className="flex items-center gap-2 mb-4">
+                              <i className="ri-palette-line text-purple-600 text-xl"></i>
+                              <div>
+                                  <h3 className="font-bold text-gray-900 text-sm">视觉生成引擎 (Visual Intelligence)</h3>
+                                  <p className="text-[10px] text-gray-500">分别配置静态海报生成与动态视频生成的底层模型。</p>
+                              </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-b border-purple-100 pb-6">
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Image Provider</label>
+                                  <select 
                                     value={aiConfig.imageProvider}
                                     onChange={(e) => setAiConfig({...aiConfig, imageProvider: e.target.value as any})}
                                     className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-purple-500 outline-none"
                                   >
-                                      <option value="midjourney">Midjourney</option>
+                                      <option value="imagen">Imagen (Google)</option>
+                                      <option value="midjourney">Midjourney v6</option>
                                       <option value="dalle">DALL-E 3</option>
-                                      <option value="stability">Stability AI</option>
                                   </select>
                               </div>
                               <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Model Version</label>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Image Model</label>
                                   <select 
                                     value={aiConfig.imageModel}
                                     onChange={(e) => setAiConfig({...aiConfig, imageModel: e.target.value})}
                                     className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-purple-500 outline-none"
                                   >
+                                      <option value="imagen-3">Imagen 3</option>
                                       <option value="midjourney-v6">Midjourney v6</option>
-                                      <option value="midjourney-niji">Niji Journey (Anime)</option>
-                                      <option value="dall-e-3">DALL-E 3 HD</option>
+                                      <option value="dall-e-3">DALL-E 3</option>
                                   </select>
                               </div>
                           </div>
-                          <div>
-                              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">API Key (Image)</label>
-                              <div className="relative">
-                                  <input 
-                                    type="password" 
-                                    value={aiConfig.imageApiKey}
-                                    placeholder="sk-..."
-                                    onChange={(e) => setAiConfig({...aiConfig, imageApiKey: e.target.value})}
-                                    className="w-full p-3 pl-10 bg-white rounded-xl text-sm font-mono border border-gray-200 focus:border-purple-500 outline-none"
-                                  />
-                                  <i className="ri-key-2-line absolute left-3 top-3.5 text-gray-400"></i>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Video Provider</label>
+                                   <div className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 text-gray-600">
+                                      Google Veo (Built-in)
+                                  </div>
                               </div>
-                          </div>
-                      </div>
-
-                      <div>
-                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">创造力参数 (Temperature): {aiConfig.temperature}</label>
-                          <input 
-                            type="range" 
-                            min="0" max="1" step="0.1" 
-                            value={aiConfig.temperature}
-                            onChange={(e) => setAiConfig({...aiConfig, temperature: parseFloat(e.target.value)})}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                          />
-                          <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-                              <span>严谨 (0.0)</span>
-                              <span>平衡 (0.5)</span>
-                              <span>发散 (1.0)</span>
+                               <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Video Model</label>
+                                  <select 
+                                    value={aiConfig.videoModel}
+                                    onChange={(e) => setAiConfig({...aiConfig, videoModel: e.target.value})}
+                                    className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-purple-500 outline-none"
+                                  >
+                                      <option value="veo-3.1-fast-generate-preview">Veo 3.1 Fast Generate</option>
+                                      <option value="veo-3.1-generate-preview">Veo 3.1 High Quality</option>
+                                  </select>
+                              </div>
                           </div>
                       </div>
 
@@ -1485,43 +2023,46 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       </div>
                   </div>
               )}
-
-              {/* Data Sources */}
+              
               {activeSettingsTab === 'data' && (
                   <div className="space-y-6 animate-fade-in">
-                       <div className="border-b border-gray-100 pb-6 flex justify-between items-end">
+                      <div className="border-b border-gray-100 pb-6 flex justify-between items-center">
                           <div>
-                              <h2 className="text-xl font-bold text-gray-900 mb-1">数据情报源 (Sources)</h2>
-                              <p className="text-sm text-gray-500">配置“市场热点”抓取的信源与更新频率。</p>
+                              <h2 className="text-xl font-bold text-gray-900 mb-1">数据情报源 (Intelligence Sources)</h2>
+                              <p className="text-sm text-gray-500">管理内容创作引擎的数据输入，包含 RSS、API 和 Webhooks。</p>
                           </div>
-                          <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 flex items-center gap-2 transition-colors">
-                              <i className="ri-add-line"></i> 新增源
+                          <button 
+                              onClick={() => setIsAddSourceModalOpen(true)}
+                              className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-black transition-colors"
+                          >
+                              <i className="ri-add-line mr-1"></i> 新增源
                           </button>
                       </div>
 
                       <div className="space-y-3">
-                          {dataSources.map(source => (
-                              <div key={source.id} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-xl hover:border-blue-200 transition-colors">
+                          {dataSources.map((source) => (
+                              <div key={source.id} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-blue-200 transition-all shadow-sm">
                                   <div className="flex items-center gap-4">
-                                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${source.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
-                                          <i className={source.type === 'RSS' ? 'ri-rss-fill' : (source.type === 'API' ? 'ri-database-2-line' : 'ri-global-line')}></i>
+                                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${source.type === 'RSS' ? 'bg-orange-50 text-orange-600' : (source.type === 'API' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600')}`}>
+                                          <i className={source.type === 'RSS' ? 'ri-rss-fill' : (source.type === 'API' ? 'ri-database-2-line' : 'ri-webhook-line')}></i>
                                       </div>
                                       <div>
                                           <div className="font-bold text-gray-900 text-sm">{source.name}</div>
-                                          <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                                              <span className="bg-white px-1.5 py-0.5 rounded border border-gray-200">{source.type}</span>
-                                              <span>Last Sync: {source.lastSync}</span>
+                                          <div className="text-xs text-gray-500 flex items-center gap-2">
+                                              <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">{source.type}</span>
+                                              <span>• 频率: {source.frequency}</span>
+                                              <span>• Last sync: {source.lastSync}</span>
                                           </div>
                                       </div>
                                   </div>
                                   <div className="flex items-center gap-4">
-                                      <div 
-                                        onClick={() => toggleDataSource(source.id)}
-                                        className={`w-11 h-6 rounded-full p-1 cursor-pointer transition-colors ${source.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}
+                                      <button className="text-gray-400 hover:text-blue-600"><i className="ri-refresh-line"></i></button>
+                                      <button 
+                                          onClick={() => toggleDataSource(source.id)}
+                                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${source.status === 'active' ? 'bg-green-500' : 'bg-gray-200'}`}
                                       >
-                                          <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${source.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                                      </div>
-                                      <button className="text-gray-400 hover:text-gray-900 p-2"><i className="ri-settings-4-line"></i></button>
+                                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${source.status === 'active' ? 'translate-x-6' : 'translate-x-1'}`} />
+                                      </button>
                                   </div>
                               </div>
                           ))}
@@ -1529,80 +2070,68 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                   </div>
               )}
 
-              {/* Social Matrix */}
               {activeSettingsTab === 'social' && (
                    <div className="space-y-6 animate-fade-in">
-                       <div className="border-b border-gray-100 pb-6 flex justify-between items-end">
+                      <div className="border-b border-gray-100 pb-6 flex justify-between items-center">
                           <div>
-                              <h2 className="text-xl font-bold text-gray-900 mb-1">全网分发矩阵 (Channels)</h2>
-                              <p className="text-sm text-gray-500">管理各区域市场的社交媒体账号授权。</p>
+                              <h2 className="text-xl font-bold text-gray-900 mb-1">全网分发矩阵 (Distribution Matrix)</h2>
+                              <p className="text-sm text-gray-500">管理不同国家/地区的社交媒体账号连接与授权。</p>
                           </div>
-                          <button onClick={() => setIsAddChannelModalOpen(true)} className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-black flex items-center gap-2 shadow-md transition-all active:scale-95">
-                              <i className="ri-add-line"></i> 添加渠道
+                          <button onClick={() => setIsAddChannelModalOpen(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors">
+                              <i className="ri-link mr-1"></i> 连接新账号
                           </button>
                       </div>
-                      
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                          {socialChannels.map(channel => (
-                              <div key={channel.id} className="p-5 border border-gray-200 rounded-2xl flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-shadow">
-                                  {/* Background Icon Watermark */}
-                                  <i className={`${channel.icon} absolute -right-4 -bottom-4 text-9xl text-gray-50 opacity-50 group-hover:scale-110 transition-transform pointer-events-none`}></i>
 
-                                  <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl flex-shrink-0 ${channel.connected ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
-                                      <i className={channel.icon}></i>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {socialChannels.map((channel) => (
+                              <div key={channel.id} className="border border-gray-200 rounded-xl p-5 relative overflow-hidden group hover:shadow-lg transition-all">
+                                  <div className="flex justify-between items-start mb-4">
+                                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white text-2xl ${channel.platform === 'twitter' ? 'bg-black' : (channel.platform === 'facebook' ? 'bg-[#1877F2]' : (channel.platform === 'telegram' ? 'bg-[#24A1DE]' : 'bg-[#07C160]'))}`}>
+                                          <i className={channel.icon}></i>
+                                      </div>
+                                      <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${channel.connected ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                          {channel.connected ? 'Connected' : 'Disconnected'}
+                                      </div>
                                   </div>
                                   
-                                  <div className="flex-1 relative z-10">
-                                      <div className="flex items-center gap-2 mb-1">
-                                          <h4 className="font-bold text-gray-900">{channel.name}</h4>
-                                          <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500 font-bold">{channel.group}</span>
-                                      </div>
-                                      {channel.connected ? (
-                                          <div className="flex flex-col gap-0.5">
-                                              <div className="flex items-center gap-1.5 text-xs text-green-600 font-bold">
-                                                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                                                  Connected
-                                              </div>
-                                              <div className="text-[10px] text-gray-400">Followers: {channel.followers}</div>
-                                          </div>
-                                      ) : (
-                                          <div className="text-xs text-gray-400">Not Connected</div>
-                                      )}
+                                  <h3 className="font-bold text-gray-900 mb-1">{channel.name}</h3>
+                                  <div className="text-xs text-gray-500 mb-4">{channel.group} Region • {channel.lang_code}</div>
+                                  
+                                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                      <div className="text-xs font-bold text-gray-900">{channel.followers || '0'} <span className="text-gray-400 font-normal">Followers</span></div>
+                                      <button 
+                                          onClick={() => toggleSocialConnect(channel.id)}
+                                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${channel.connected ? 'border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200' : 'bg-gray-900 text-white border-transparent hover:bg-black'}`}
+                                      >
+                                          {channel.connected ? 'Disconnect' : 'Connect'}
+                                      </button>
                                   </div>
-
-                                  <button 
-                                    onClick={() => toggleSocialConnect(channel.id)}
-                                    className={`relative z-10 px-4 py-2 rounded-lg text-xs font-bold transition-all ${channel.connected ? 'bg-white border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200' : 'bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-200'}`}
-                                  >
-                                      {channel.connected ? 'Disconnect' : 'Connect'}
-                                  </button>
                               </div>
                           ))}
                       </div>
                    </div>
               )}
 
-              {/* Brand VI (Integrated) */}
               {activeSettingsTab === 'brand' && (
                   <div className="space-y-8 animate-fade-in">
                        <div className="border-b border-gray-100 pb-6">
                           <h2 className="text-xl font-bold text-gray-900 mb-1">品牌视觉规范 (Brand VI)</h2>
-                          <p className="text-sm text-gray-500">配置企业核心识别要素，AI 将基于此生成符合调性的内容。</p>
+                          <p className="text-sm text-gray-500">配置企业核心识别要素，AI 将严格基于此生成符合调性的内容。</p>
                       </div>
-
-                      {/* Section 1: Strategic Identity */}
-                      <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/50">
-                          <h3 className="text-sm font-bold text-blue-800 mb-4 flex items-center gap-2">
-                              <i className="ri-compass-3-fill"></i> 战略识别 (Strategic Identity)
+                      
+                      {/* Identity Section */}
+                      <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                          <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <i className="ri-compass-3-fill text-blue-600"></i> 战略识别 (Strategic Identity)
                           </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                               <div>
                                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Company Name</label>
                                   <input 
                                     type="text" 
                                     value={brandConfig.companyName}
                                     onChange={(e) => setBrandConfig({...brandConfig, companyName: e.target.value})}
-                                    className="w-full p-3 bg-white rounded-xl text-sm border border-blue-100 focus:border-blue-500 outline-none"
+                                    className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-blue-500 outline-none"
                                   />
                               </div>
                               <div>
@@ -1611,94 +2140,117 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                     type="text" 
                                     value={brandConfig.slogan}
                                     onChange={(e) => setBrandConfig({...brandConfig, slogan: e.target.value})}
-                                    className="w-full p-3 bg-white rounded-xl text-sm border border-blue-100 focus:border-blue-500 outline-none"
-                                  />
-                              </div>
-                              <div className="md:col-span-2">
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Vision Statement (愿景)</label>
-                                  <textarea 
-                                    value={brandConfig.vision}
-                                    onChange={(e) => setBrandConfig({...brandConfig, vision: e.target.value})}
-                                    className="w-full p-3 bg-white rounded-xl text-sm border border-blue-100 focus:border-blue-500 outline-none resize-none h-20"
+                                    className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-blue-500 outline-none"
                                   />
                               </div>
                           </div>
-                      </div>
-
-                      {/* Section 2: Visual Identity */}
-                      <div>
-                          <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                              <i className="ri-palette-fill text-gray-400"></i> 视觉识别 (Visual Identity)
-                          </h3>
-                          <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col md:flex-row items-start gap-6 mb-6">
-                              <div className="text-center w-full md:w-auto">
-                                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Logo</label>
-                                  <div className="w-24 h-24 bg-white rounded-xl shadow-sm border border-gray-200 flex items-center justify-center overflow-hidden mx-auto">
-                                      {brandConfig.logoUrl ? (
-                                          <img src={brandConfig.logoUrl} alt="Logo" className="w-full h-full object-contain" />
-                                      ) : (
-                                          <div className="text-center">
-                                              <div className="w-10 h-10 bg-blue-600 rounded flex items-center justify-center text-white font-bold mx-auto mb-1 text-lg">P</div>
-                                          </div>
-                                      )}
-                                  </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                               <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tone of Voice</label>
+                                  <select 
+                                      value={brandConfig.tone}
+                                      onChange={(e) => setBrandConfig({...brandConfig, tone: e.target.value})}
+                                      className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-blue-500 outline-none"
+                                  >
+                                      <option value="Professional, Authoritative, Insightful">Professional & Authoritative (Default)</option>
+                                      <option value="Friendly, Approachable, Simple">Friendly & Simple (Consumer)</option>
+                                      <option value="Technical, Precise, Developer-focused">Technical & Precise (Developer)</option>
+                                      <option value="Exciting, Innovative, Visionary">Innovative & Visionary (Launch)</option>
+                                  </select>
                               </div>
-                              <div className="flex-1 w-full">
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Logo URL</label>
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Keywords (SEO)</label>
                                   <input 
                                     type="text" 
-                                    placeholder="https://..." 
-                                    value={brandConfig.logoUrl}
-                                    onChange={(e) => setBrandConfig({...brandConfig, logoUrl: e.target.value})}
-                                    className="w-full p-3 bg-white rounded-xl border border-gray-200 text-sm focus:border-blue-500 outline-none mb-2"
+                                    value={brandConfig.keywords.join(', ')}
+                                    onChange={(e) => setBrandConfig({...brandConfig, keywords: e.target.value.split(',').map(s => s.trim())})}
+                                    className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-blue-500 outline-none"
+                                    placeholder="Fintech, Blockchain..."
                                   />
-                                  <div className="flex items-center gap-2">
-                                      <input type="checkbox" checked={brandConfig.watermark} onChange={(e) => setBrandConfig({...brandConfig, watermark: e.target.checked})} id="watermark_chk" className="rounded text-blue-600 focus:ring-blue-500"/>
-                                      <label htmlFor="watermark_chk" className="text-xs text-gray-600 font-medium">在生成的海报中应用水印</label>
-                                  </div>
-                              </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-6">
-                              <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">主色调 (Primary)</label>
-                                  <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl">
-                                      <input 
-                                        type="color" 
-                                        value={brandConfig.primaryColor} 
-                                        onChange={(e) => setBrandConfig({...brandConfig, primaryColor: e.target.value})}
-                                        className="w-8 h-8 rounded border-0 p-0 cursor-pointer"
-                                      />
-                                      <span className="font-mono text-sm text-gray-600 uppercase">{brandConfig.primaryColor}</span>
-                                  </div>
-                              </div>
-                               <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">辅助色 (Secondary)</label>
-                                  <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl">
-                                      <input 
-                                        type="color" 
-                                        value={brandConfig.secondaryColor} 
-                                        onChange={(e) => setBrandConfig({...brandConfig, secondaryColor: e.target.value})}
-                                        className="w-8 h-8 rounded border-0 p-0 cursor-pointer"
-                                      />
-                                      <span className="font-mono text-sm text-gray-600 uppercase">{brandConfig.secondaryColor}</span>
-                                  </div>
                               </div>
                           </div>
                       </div>
 
-                      {/* Section 3: Tone & Voice */}
-                      <div>
+                      {/* Visual Assets Section */}
+                      <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
                           <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                              <i className="ri-chat-voice-fill text-gray-400"></i> 语气与调性 (Tone & Voice)
+                              <i className="ri-palette-fill text-purple-600"></i> 视觉资产 (Visual Assets)
                           </h3>
-                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Persona Description</label>
-                          <textarea 
-                                value={brandConfig.tone}
-                                onChange={(e) => setBrandConfig({...brandConfig, tone: e.target.value})}
-                                className="w-full p-4 bg-gray-50 rounded-xl text-sm border-transparent focus:bg-white focus:border-blue-500 outline-none h-24 resize-none leading-relaxed"
-                                placeholder="e.g. Professional, Authoritative, Insightful. Speaks directly to institutional investors..."
-                          />
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Primary Color</label>
+                                  <div className="flex items-center gap-2">
+                                      <input 
+                                        type="color" 
+                                        value={brandConfig.primaryColor}
+                                        onChange={(e) => setBrandConfig({...brandConfig, primaryColor: e.target.value})}
+                                        className="w-10 h-10 rounded cursor-pointer border-0 p-0"
+                                      />
+                                      <input 
+                                        type="text" 
+                                        value={brandConfig.primaryColor}
+                                        onChange={(e) => setBrandConfig({...brandConfig, primaryColor: e.target.value})}
+                                        className="flex-1 p-2.5 bg-white rounded-xl text-sm border border-gray-200 font-mono uppercase"
+                                      />
+                                  </div>
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Secondary Color</label>
+                                   <div className="flex items-center gap-2">
+                                      <input 
+                                        type="color" 
+                                        value={brandConfig.secondaryColor}
+                                        onChange={(e) => setBrandConfig({...brandConfig, secondaryColor: e.target.value})}
+                                        className="w-10 h-10 rounded cursor-pointer border-0 p-0"
+                                      />
+                                      <input 
+                                        type="text" 
+                                        value={brandConfig.secondaryColor}
+                                        onChange={(e) => setBrandConfig({...brandConfig, secondaryColor: e.target.value})}
+                                        className="flex-1 p-2.5 bg-white rounded-xl text-sm border border-gray-200 font-mono uppercase"
+                                      />
+                                  </div>
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Accent Color</label>
+                                   <div className="flex items-center gap-2">
+                                      <input 
+                                        type="color" 
+                                        value={brandConfig.accentColor}
+                                        onChange={(e) => setBrandConfig({...brandConfig, accentColor: e.target.value})}
+                                        className="w-10 h-10 rounded cursor-pointer border-0 p-0"
+                                      />
+                                      <input 
+                                        type="text" 
+                                        value={brandConfig.accentColor}
+                                        onChange={(e) => setBrandConfig({...brandConfig, accentColor: e.target.value})}
+                                        className="flex-1 p-2.5 bg-white rounded-xl text-sm border border-gray-200 font-mono uppercase"
+                                      />
+                                  </div>
+                              </div>
+                          </div>
+                          <div>
+                               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Typography (Font Family)</label>
+                               <select 
+                                  value={brandConfig.fontFamily}
+                                  onChange={(e) => setBrandConfig({...brandConfig, fontFamily: e.target.value})}
+                                  className="w-full p-3 bg-white rounded-xl text-sm border border-gray-200 focus:border-blue-500 outline-none"
+                               >
+                                  <option value="Inter">Inter (Modern Sans)</option>
+                                  <option value="Roboto">Roboto (Android Default)</option>
+                                  <option value="Helvetica Neue">Helvetica Neue (Classic)</option>
+                                  <option value="Merriweather">Merriweather (Serif)</option>
+                               </select>
+                          </div>
+                      </div>
+
+                       <div className="pt-6 border-t border-gray-100 flex justify-end">
+                          <button 
+                            className="px-6 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-sm hover:bg-black shadow-md flex items-center gap-2 transition-all active:scale-95"
+                          >
+                              <i className="ri-save-3-line"></i>
+                              更新品牌资产
+                          </button>
                       </div>
                   </div>
               )}
@@ -1708,7 +2260,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   const renderLaunchpad = () => <div className="p-8 text-center text-gray-400">Launchpad Module (Coming Soon)</div>;
   const renderReports = () => <div className="p-8 text-center text-gray-400">Reports Module (Coming Soon)</div>;
-  const renderNotices = () => <div className="p-8 text-center text-gray-400">Notices Module (Coming Soon)</div>;
   const renderTeam = () => <div className="p-8 text-center text-gray-400">Team Module (Coming Soon)</div>;
 
   const renderSidebar = () => (
@@ -1729,9 +2280,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-6">
                 {[
                     { id: 'studio', label: text.sidebar.studio, icon: 'ri-edit-circle-line' },
+                    { id: 'notices', label: text.sidebar.notices, icon: 'ri-archive-line' },
                     { id: 'reports', label: text.sidebar.reports, icon: 'ri-pie-chart-2-line' },
                     { id: 'launchpad', label: text.sidebar.launchpad, icon: 'ri-rocket-2-line' },
-                    { id: 'notices', label: text.sidebar.notices, icon: 'ri-archive-line' },
                     { id: 'team', label: text.sidebar.team, icon: 'ri-team-line' },
                     { id: 'settings', label: text.sidebar.settings, icon: 'ri-settings-4-line' },
                 ].map(item => (
@@ -1764,6 +2315,66 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       <Toast message={toastMsg} show={showToast} onClose={() => setShowToast(false)} type={toastType} />
       
       {renderSidebar()}
+
+      {/* Add Source Modal (Data Intelligence) */}
+      <Modal isOpen={isAddSourceModalOpen} onClose={() => setIsAddSourceModalOpen(false)} title="新增数据情报源">
+          <div className="space-y-4">
+              <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">源名称</label>
+                  <input 
+                      type="text" 
+                      className="w-full p-3 bg-gray-50 rounded-xl text-sm border-transparent focus:bg-white focus:border-blue-500 outline-none"
+                      placeholder="例如: Bloomberg Crypto RSS"
+                      value={newSource.name}
+                      onChange={(e) => setNewSource({...newSource, name: e.target.value})}
+                  />
+              </div>
+              <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">类型</label>
+                  <select 
+                      className="w-full p-3 bg-gray-50 rounded-xl text-sm border-transparent focus:bg-white focus:border-blue-500 outline-none"
+                      value={newSource.type}
+                      onChange={(e) => setNewSource({...newSource, type: e.target.value as any})}
+                  >
+                      <option value="RSS">RSS Feed</option>
+                      <option value="API">REST API</option>
+                      <option value="Webhook">Webhook (Push)</option>
+                      <option value="Scraper">Web Scraper</option>
+                  </select>
+              </div>
+              <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">接口地址 (Endpoint URL)</label>
+                  <input 
+                      type="text" 
+                      className="w-full p-3 bg-gray-50 rounded-xl text-sm border-transparent focus:bg-white focus:border-blue-500 outline-none font-mono"
+                      placeholder="https://..."
+                      value={newSource.endpoint}
+                      onChange={(e) => setNewSource({...newSource, endpoint: e.target.value})}
+                  />
+              </div>
+               <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">更新频率</label>
+                  <select 
+                      className="w-full p-3 bg-gray-50 rounded-xl text-sm border-transparent focus:bg-white focus:border-blue-500 outline-none"
+                      value={newSource.frequency}
+                      onChange={(e) => setNewSource({...newSource, frequency: e.target.value})}
+                  >
+                      <option value="Real-time">实时 (Real-time)</option>
+                      <option value="15m">每 15 分钟</option>
+                      <option value="1h">每 1 小时 (推荐)</option>
+                      <option value="6h">每 6 小时</option>
+                      <option value="24h">每天一次</option>
+                  </select>
+              </div>
+
+              <button 
+                  onClick={handleAddSource}
+                  className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm shadow-md hover:bg-black mt-4"
+              >
+                  确认添加
+              </button>
+          </div>
+      </Modal>
 
       {/* Add Channel Modal */}
       <Modal isOpen={isAddChannelModalOpen} onClose={() => setIsAddChannelModalOpen(false)} title="Add Social Channel">
@@ -1831,18 +2442,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       
       <div className="md:hidden h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-3">
-               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">P</div>
-               <span className="font-bold text-lg">{text.sidebar.brand}</span>
+               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">P</div>
+               <span className="font-bold text-gray-900">PAIPAY</span>
           </div>
-          <button onClick={() => setIsSidebarOpen(true)} className="text-gray-600 p-2"><i className="ri-menu-line text-2xl"></i></button>
+          <button onClick={() => setIsSidebarOpen(true)} className="text-gray-500"><i className="ri-menu-line text-xl"></i></button>
       </div>
-      <main className="p-4 md:p-6 max-w-7xl mx-auto">
-        {activeTab === 'studio' && renderStudio()}
-        {activeTab === 'launchpad' && renderLaunchpad()}
-        {activeTab === 'reports' && renderReports()}
-        {activeTab === 'notices' && renderNotices()}
-        {activeTab === 'team' && renderTeam()}
-        {activeTab === 'settings' && renderSettings()}
+
+      <main className="p-4 md:p-8 md:h-screen overflow-y-auto">
+          {activeTab === 'studio' && renderStudio()}
+          {activeTab === 'launchpad' && renderLaunchpad()}
+          {activeTab === 'reports' && renderReports()}
+          {activeTab === 'notices' && renderNotices()}
+          {activeTab === 'team' && renderTeam()}
+          {activeTab === 'settings' && renderSettings()}
       </main>
     </div>
   );

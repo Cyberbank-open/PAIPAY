@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage, MarketCategory, Article } from './LanguageContext';
 import { PageView } from '../App';
@@ -112,8 +113,29 @@ const MarketHub: React.FC<MarketHubProps> = ({ onNavigate }) => {
                 className="group cursor-pointer flex flex-col h-full bg-white rounded-2xl transition-all duration-500 hover:-translate-y-1"
                 >
                 <div className="aspect-[16/10] bg-gray-100 rounded-2xl mb-6 relative overflow-hidden shadow-sm">
-                    {/* Abstract placeholder visual */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 via-white to-gray-100 group-hover:scale-105 transition-transform duration-700"></div>
+                    {item.image_url ? (
+                        <>
+                            {item.image_url.includes('.mp4') || item.image_url.includes('googleusercontent') ? (
+                                <video 
+                                    src={item.image_url} 
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                                    muted 
+                                    loop 
+                                    autoPlay 
+                                    playsInline
+                                />
+                            ) : (
+                                <img 
+                                    src={item.image_url} 
+                                    alt={item.title} 
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                />
+                            )}
+                        </>
+                    ) : (
+                         /* Abstract placeholder visual if no image */
+                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 via-white to-gray-100 group-hover:scale-105 transition-transform duration-700"></div>
+                    )}
                     
                     {/* Category Badge */}
                     <div className="absolute top-4 left-4">
@@ -125,7 +147,7 @@ const MarketHub: React.FC<MarketHubProps> = ({ onNavigate }) => {
 
                     {/* Tag Badge */}
                     <div className="absolute bottom-4 left-4">
-                         <span className="text-[10px] font-bold text-blue-600 tracking-widest uppercase opacity-80 group-hover:opacity-100 transition-opacity">
+                         <span className="text-[10px] font-bold text-blue-600 tracking-widest uppercase opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-md">
                              #{item.tag}
                          </span>
                     </div>
