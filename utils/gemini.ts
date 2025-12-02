@@ -9,15 +9,12 @@ const getAiClient = (specificApiKey?: string) => {
   }
 
   // 2. Fallback to the environment variable (Netlify/Vite)
-  // CRITICAL FIX: Vite replaces 'process.env.API_KEY' with the actual string literal at build time.
-  // We MUST access it directly. checking 'typeof process' will fail in the browser because the global process object doesn't exist.
-  try {
-    const envKey = process.env.API_KEY;
-    if (envKey && typeof envKey === 'string' && envKey.trim() !== '') {
-      return new GoogleGenAI({ apiKey: envKey });
-    }
-  } catch (e) {
-    console.warn("Failed to read process.env.API_KEY");
+  // Vite replaces 'process.env.API_KEY' with the actual string literal at build time.
+  // We use the nullish coalescing operator and avoid try/catch blocks to prevent Rollup parsing errors.
+  const envKey = process.env.API_KEY ?? "";
+  
+  if (envKey && typeof envKey === 'string' && envKey.trim() !== '') {
+    return new GoogleGenAI({ apiKey: envKey });
   }
 
   return null;
