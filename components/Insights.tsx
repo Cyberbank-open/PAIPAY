@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useLanguage } from './LanguageContext';
+import { useLanguage, Article } from './LanguageContext';
 import { PageView } from '../App';
+import { fetchArticles } from '../utils/articleService';
 
 const data = [
   { month: 'Jan', value: 1.8 },
@@ -25,6 +26,31 @@ interface InsightsProps {
 const Insights: React.FC<InsightsProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'market' | 'notice'>('market');
   const { t } = useLanguage();
+  
+  // State for dynamic content
+  const [displayMarket, setDisplayMarket] = useState<Article[]>([]);
+  const [displayNotices, setDisplayNotices] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+        setLoading(true);
+        // Fetch dynamic content from Supabase
+        const marketData = await fetchArticles('market');
+        const noticeData = await fetchArticles('notice');
+
+        // Merge with static data (Dynamic first)
+        // Ensure that if fetch fails (returns empty), static data is still used.
+        const combinedMarket = [...marketData, ...t.insights.market_items];
+        const combinedNotices = [...noticeData, ...t.insights.notice_items];
+
+        // Slice for display (Market: 2 items, Notice: 3 items)
+        setDisplayMarket(combinedMarket.slice(0, 2));
+        setDisplayNotices(combinedNotices.slice(0, 3));
+        setLoading(false);
+    };
+    loadData();
+  }, [t.insights.market_items, t.insights.notice_items]);
 
   return (
     <section id="insights" className="py-20 md:py-32 bg-white">
@@ -99,19 +125,29 @@ const Insights: React.FC<InsightsProps> = ({ onNavigate }) => {
               </div>
             </div>
             
-            {/* Reports Column */}
+            {/* Reports Column - Dynamic */}
             <div className="flex flex-col gap-4">
-              {t.insights.market_items.slice(0, 2).map((item) => (
-                <div 
-                  key={item.id}
-                  onClick={() => onNavigate('article_detail', item.id, 'market')}
-                  className="glass-card p-4 md:p-5 rounded-xl border-l-4 border-transparent hover:border-blue-500 cursor-pointer transition-all flex-1"
-                >
-                  <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wide mb-1">{item.tag}</div>
-                  <h5 className="font-bold text-gray-800 text-sm mb-1">{item.title}</h5>
-                  <p className="text-xs text-gray-500 line-clamp-2">{item.summary}</p>
-                </div>
-              ))}
+              {loading ? (
+                  <div className="flex-1 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+              ) : (
+                displayMarket.map((item) => (
+                    <div 
+                    key={item.id}
+                    onClick={() => onNavigate('article_detail', item.id, 'market')}
+                    className="glass-card p-4 md:p-5 rounded-xl border-l-4 border-transparent hover:border-blue-500 cursor-pointer transition-all flex-1"
+                    >
+                    <div className="flex justify-between items-start mb-1">
+                        <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">{item.tag}</div>
+                        {/* Flash dot for recent items (assuming id length > 5 indicates DB item) */}
+                        {item.id.length > 5 && <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>}
+                    </div>
+                    <h5 className="font-bold text-gray-800 text-sm mb-1 line-clamp-1">{item.title}</h5>
+                    <p className="text-xs text-gray-500 line-clamp-2">{item.summary}</p>
+                    </div>
+                ))
+              )}
               
               <button 
                 onClick={() => onNavigate('market_hub')}
@@ -126,32 +162,38 @@ const Insights: React.FC<InsightsProps> = ({ onNavigate }) => {
         {/* Notice Tab */}
         {activeTab === 'notice' && (
           <div className="animate-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {t.insights.notice_items.slice(0, 3).map((item, index) => {
-                const colors = [
-                   { border: 'bg-blue-500', bg: 'bg-blue-50/50', badge_bg: 'bg-blue-100', badge_text: 'text-blue-700' },
-                   { border: 'bg-orange-400', bg: 'bg-gray-50/50', badge_bg: 'bg-orange-100', badge_text: 'text-orange-700' },
-                   { border: 'bg-green-500', bg: 'bg-gray-50/50', badge_bg: 'bg-green-100', badge_text: 'text-green-700' },
-                ];
-                const color = colors[index % colors.length];
-                
-                return (
-                  <div 
-                    key={item.id}
-                    onClick={() => onNavigate('article_detail', item.id, 'notice')}
-                    className={`${color.bg} p-6 rounded-xl border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer`}
-                  >
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${color.border}`}></div>
-                    <div className="flex justify-between items-start mb-3">
-                      <span className={`px-2 py-1 ${color.badge_bg} ${color.badge_text} text-[10px] font-bold rounded`}>{item.tag}</span>
-                      <span className="text-xs text-gray-400">{item.date}</span>
+            {loading ? (
+                <div className="flex justify-center py-10">
+                    <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {displayNotices.map((item, index) => {
+                    const colors = [
+                    { border: 'bg-blue-500', bg: 'bg-blue-50/50', badge_bg: 'bg-blue-100', badge_text: 'text-blue-700' },
+                    { border: 'bg-orange-400', bg: 'bg-gray-50/50', badge_bg: 'bg-orange-100', badge_text: 'text-orange-700' },
+                    { border: 'bg-green-500', bg: 'bg-gray-50/50', badge_bg: 'bg-green-100', badge_text: 'text-green-700' },
+                    ];
+                    const color = colors[index % colors.length];
+                    
+                    return (
+                    <div 
+                        key={item.id}
+                        onClick={() => onNavigate('article_detail', item.id, 'notice')}
+                        className={`${color.bg} p-6 rounded-xl border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer`}
+                    >
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${color.border}`}></div>
+                        <div className="flex justify-between items-start mb-3">
+                        <span className={`px-2 py-1 ${color.badge_bg} ${color.badge_text} text-[10px] font-bold rounded`}>{item.tag}</span>
+                        <span className="text-xs text-gray-400">{item.date}</span>
+                        </div>
+                        <h5 className="font-bold text-gray-800 mb-2 text-sm line-clamp-1">{item.title}</h5>
+                        <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">{item.summary}</p>
                     </div>
-                    <h5 className="font-bold text-gray-800 mb-2 text-sm">{item.title}</h5>
-                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">{item.summary}</p>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                })}
+                </div>
+            )}
             
             <div className="flex justify-center">
                <button 

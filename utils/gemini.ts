@@ -10,7 +10,6 @@ const getAiClient = (specificApiKey?: string) => {
 
   // 2. Fallback to the environment variable (Netlify/Vite)
   // Vite replaces 'process.env.API_KEY' with the actual string literal at build time.
-  // We use the nullish coalescing operator and avoid try/catch blocks to prevent Rollup parsing errors.
   const envKey = process.env.API_KEY ?? "";
   
   if (envKey && typeof envKey === 'string' && envKey.trim() !== '') {
@@ -87,7 +86,6 @@ export const generateArticleContent = async (
 
   if (!ai) {
     console.warn("⚠️ Simulation Mode: API Key missing. Returning mock AI response.");
-    // Small delay to simulate network request
     await new Promise(resolve => setTimeout(resolve, 1000));
     return getMockArticle("Simulation Topic (No Key)", language, stream);
   }
@@ -95,30 +93,34 @@ export const generateArticleContent = async (
   // Use the configured model
   const prefix = stream === 'market' ? (language === 'CN' ? '【PAIPAY 市场洞察】' : '[PAIPAY Market Pulse]') : (language === 'CN' ? '【系统公告】' : '[System Notice]');
 
+  // STRICT PROMPT ENGINEERING FOR HTML FORMATTING
   const systemInstruction = `You are an expert Fintech Editor for PAIPAY, a global clearing network. 
   Your Tone: ${tone}.
-  Article Length: ${length} (Short: ~300 words, Medium: ~800 words, Long: ~1500 words).
-  Stream Type: ${stream} (Market Pulse vs System Notice).
+  Article Length: ${length}.
+  Stream Type: ${stream}.
   Language: ${language}.
   
-  Mandatory Formatting Rules:
-  1. **Intro**: Start the HTML content with a paragraph containing the prefix "${prefix}".
-  2. **Outro**: End the HTML content with a horizontal rule <hr> and a standardized disclaimer in ${language}.
-  3. **Tags**: Generate 3-5 relevant tags (e.g., #DeFi, #Payments) and include them in the JSON 'tags' array, NOT in the HTML content.
-  4. **Structure**: Use perfect HTML structure. **CRITICAL**: Use <p> tags for paragraphs. Do NOT use simple line breaks. Ensure headers (<h2>, <h3>) have clear separation from text.
-  5. **Poster Data**: Extract key short texts for generating a poster image.
-  6. **Image Prompt**: Generate a detailed Midjourney/DALL-E prompt for an abstract, high-tech illustration suitable for this article. Style: Isometric, Blue/White, Fintech.
-
-  Requirements:
-  1. Output must be valid JSON.
-  2. "content" must be rich HTML.
-  3. "social_drafts" should provide platform-specific copy (Twitter: short + hashtags, LinkedIn: professional, Telegram: bullet points).
+  CRITICAL FORMATTING RULES (STRICT HTML ENFORCEMENT):
+  1. **OUTPUT RAW JSON ONLY**. Do NOT use markdown code blocks (no \`\`\`json).
+  2. **CONTENT FIELD MUST BE HTML**:
+     - The 'content' field must be a valid HTML string (e.g., "<p>Text</p>").
+     - **DO NOT** use Markdown syntax (e.g., **bold**, ## Header) inside the content string. 
+     - Use <h3> for subheadings.
+     - Use <p> for paragraphs.
+     - Use <ul> and <li> for lists.
+     - Use <strong> for emphasis.
+     - Use <br> for line breaks only if necessary within a paragraph.
+  3. **STRUCTURE**:
+     - Start with <p><strong>${prefix}</strong></p>.
+     - Write a compelling lead.
+     - Use bullet points for data.
+     - End with <hr> and a disclaimer.
   `;
 
   const prompt = `Raw Source Material: 
   "${rawSource}"
   
-  Please generate the article structure.`;
+  Generate the full JSON response now, ensuring 'content' is pure HTML tags, no markdown formatting.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -139,11 +141,11 @@ export const generateArticleContent = async (
                     body_highlight: { type: Type.STRING, description: "Key stat or short quote" }
                 }
             },
-            slug: { type: Type.STRING, description: "URL friendly slug" },
-            meta_desc: { type: Type.STRING, description: "SEO meta description, max 160 chars" },
-            content: { type: Type.STRING, description: "Full article body in HTML format" },
+            slug: { type: Type.STRING },
+            meta_desc: { type: Type.STRING },
+            content: { type: Type.STRING, description: "Full article body in HTML format (NO Markdown)" },
             tags: { type: Type.ARRAY, items: { type: Type.STRING } },
-            image_prompt: { type: Type.STRING, description: "Prompt for AI image generation" },
+            image_prompt: { type: Type.STRING },
             social_drafts: {
               type: Type.OBJECT,
               properties: {
@@ -159,13 +161,11 @@ export const generateArticleContent = async (
     });
 
     if (response.text) {
-      // CLEANUP: Remove Markdown code blocks if present (common issue with some models)
       let cleanText = response.text.trim();
-      if (cleanText.startsWith('```json')) {
-          cleanText = cleanText.replace(/^```json\n/, '').replace(/\n```$/, '');
-      } else if (cleanText.startsWith('```')) {
-          cleanText = cleanText.replace(/^```\n/, '').replace(/\n```$/, '');
-      }
+      // Remove generic markdown blocks if model hallucinates them
+      if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
+      if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
+      if (cleanText.endsWith('```')) cleanText = cleanText.substring(0, cleanText.length - 3);
       
       return JSON.parse(cleanText) as GeneratedArticle;
     }
@@ -173,8 +173,7 @@ export const generateArticleContent = async (
 
   } catch (error) {
     console.error("AI Generation Failed:", error);
-    // Fallback to mock if API call fails
-    return getMockArticle("Generation Error (Check Console)", language, stream);
+    return getMockArticle("Generation Error", language, stream);
   }
 };
 
@@ -182,48 +181,34 @@ export const translateText = async (
     text: string,
     targetLanguage: string,
     modelName: string = "gemini-2.5-flash-lite-latest",
-    apiKey?: string // Optional dynamic API key
+    apiKey?: string
 ): Promise<string> => {
-    
     const ai = getAiClient(apiKey);
+    if (!ai) return `[Mock Trans] ${text.substring(0, 50)}...`;
 
-    if (!ai) {
-        return `[Mock Trans] ${text.substring(0, 50)}... (${targetLanguage})`;
-    }
-
-    const systemInstruction = `You are a professional translator for a Fintech company. Translate the text to ${targetLanguage}. Maintain tone and formatting. Return ONLY the translated text.`;
+    const systemInstruction = `Translate to ${targetLanguage}. Maintain tone. Return ONLY the translated text.`;
 
     try {
         const response = await ai.models.generateContent({
             model: modelName,
             contents: text,
-            config: {
-                systemInstruction: systemInstruction,
-            }
+            config: { systemInstruction }
         });
         return response.text || text;
-    } catch (e) {
-        console.error("Translation failed", e);
-        return text;
-    }
+    } catch (e) { return text; }
 }
 
 export const generateVideoContent = async (
   prompt: string,
   aspectRatio: '16:9' | '9:16',
-  apiKey?: string // Optional dynamic API key
+  apiKey?: string
 ): Promise<string | null> => {
-  
   const aiClient = getAiClient(apiKey);
-  
-  if (!aiClient) {
-     throw new Error("API Key is missing. Please select a key.");
-  }
+  if (!aiClient) throw new Error("API Key is missing.");
   
   const model = 'veo-3.1-fast-generate-preview';
 
   try {
-      console.log(`Starting Veo generation (${aspectRatio})...`);
       let operation = await aiClient.models.generateVideos({
           model,
           prompt,
@@ -240,15 +225,13 @@ export const generateVideoContent = async (
       }
       
       const vid = operation.response?.generatedVideos?.[0]?.video;
-      // We must append the key to the URL for it to be accessible
       if (vid?.uri) {
-          // Find which key was actually used to append it to the URL
           const usedKey = apiKey || process.env.API_KEY || '';
           return `${vid.uri}&key=${usedKey}`;
       }
       return null;
   } catch (error) {
-      console.error("Veo Generation Error:", error);
+      console.error("Veo Error:", error);
       throw error;
   }
 };
